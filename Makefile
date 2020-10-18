@@ -25,8 +25,8 @@ compile_client: compile_common
 	javac -cp src src/client/*.java
 
 server: compile_server
-	@printf "Run server on port 1027.\n"
-	java -cp src server.Server
+	@printf "Run server on port 1027.\n\n"
+	@java -cp src server.Server 1027
 
 client: compile_client
 	@printf "Run client.\n"
