@@ -16,13 +16,13 @@ public class Message{
   
   public String toNetFormat() {
     String res = type.toString();
+    res += "\n";
     if(args != null){
-      res += "\n";
       for (String arg : args){
         res += arg + "\n";
       }
-      res += ".";
     }
+    res += ".";
     return res;
   }
 
@@ -64,7 +64,39 @@ public class Message{
 
     SEND_DOMAIN_KO("SEND_DOMAIN_KO"),
 
-    REQUEST_ANC("REQUEST_ANC");
+    REQUEST_ANC("REQUEST_ANC"),
+
+    SEND_ANC_OK("SEND_ANC_OK"),
+
+    SEND_ANC_KO("SEND_ANC_KO"),
+
+    REQUEST_OWN_ANC("REQUEST_OWN_ANC"),
+
+    SEND_OWN_ANC_OK("SEND_OWN_ANC_OK"),
+
+    SEND_OWN_ANC_KO("SEND_OWN_ANC_KO"),
+
+    REQUEST_IP("REQUEST_IP"),
+
+    REQUEST_IP_OK("REQUEST_IP_OK"),
+
+    REQUEST_IP_KO("REQUEST_IP_KO"),
+
+    CONNECT_PAIR("CONNECT_PAIR"),
+
+    CONNECT_PAIR_REJECTED("CONNECT_PAIR_REJECTED"),
+
+    CONNECT_PAIR_OK("CONNECT_PAIR_OK"),
+
+    CONNECT_PAIR_KO("CONNECT_PAIR_KO"),
+
+    DISCONNECT_PAIR("DISCONNECT_PAIR"),
+
+    SEND_MSG("SEND_MSG"),
+
+    SEND_MSG_OK("SEND_MSG_OK"),
+
+    SEND_MSG_KO("SEND_MSG_KO");
 
     private String name;
 
