@@ -1,5 +1,7 @@
 package common;
 
+import java.util.Arrays;
+
 public class Message{
   private MessageType type;
   private String[] args;
@@ -22,10 +24,130 @@ public class Message{
         res += arg + "\n";
       }
     }
-    res += ".";
+    res += ".\n";
     return res;
   }
+  
+  public static Message stringToMessage(String sMessage){
+    String[] tokens = sMessage.substring(0,sMessage.length()-2).split("\n");
+    MessageType type = stringToMessageType(tokens[0]);
+    String[] args = (tokens.length<2)? null : Arrays.copyOfRange(tokens, 1, tokens.length);
+    return new Message(type,args);
+  }
 
+  private static MessageType stringToMessageType(String stringType) {
+    MessageType res;
+    switch (stringType) {
+      case "CONNECT":
+        res = MessageType.CONNECT;
+        break;
+      case "CONNECT_OK":
+        res = MessageType.CONNECT_OK;
+        break;
+      case "CONNECT_NEW_USER_OK":
+        res = MessageType.CONNECT_NEW_USER_OK;
+        break;
+      case "CONNECT_NEW_USER_KO":
+        res = MessageType.CONNECT_NEW_USER_KO;
+        break;
+      case "CONNECT_KO":
+        res = MessageType.CONNECT_KO;
+        break;
+      case "DISCONNECT":
+        res = MessageType.DISCONNECT;
+        break;
+      case "POST_ANC":
+        res = MessageType.POST_ANC;
+        break;
+      case "POST_ANC_OK":
+        res = MessageType.POST_ANC_OK;
+        break;
+      case "POST_ANC_KO":
+        res = MessageType.POST_ANC_KO;
+        break;
+      case "MAJ_ANC":
+        res = MessageType.MAJ_ANC;
+        break;
+      case "MAJ_ANC_OK":
+        res = MessageType.MAJ_ANC_OK;
+        break;
+      case "MAJ_ANC_KO":
+        res = MessageType.MAJ_ANC_KO;
+        break;
+      case "DELETE_ANC":
+        res = MessageType.DELETE_ANC;
+        break;
+      case "DELETE_ANC_OK":
+        res = MessageType.DELETE_ANC_OK;
+        break;
+      case "DELETE_ANC_KO":
+        res = MessageType.DELETE_ANC_KO;
+        break;
+      case "REQUEST_DOMAIN":
+        res = MessageType.REQUEST_DOMAIN;
+        break;
+      case "SEND_DOMAINE_OK":
+        res = MessageType.SEND_DOMAINE_OK;
+        break;
+      case "SEND_DOMAIN_KO":
+        res = MessageType.SEND_DOMAIN_KO;
+        break;
+      case "REQUEST_ANC":
+        res = MessageType.REQUEST_ANC;
+        break;
+      case "SEND_ANC_OK":
+        res = MessageType.SEND_ANC_OK;
+        break;
+      case "SEND_ANC_KO":
+        res = MessageType.SEND_ANC_KO;
+        break;
+      case "REQUEST_OWN_ANC":
+        res = MessageType.REQUEST_OWN_ANC;
+        break;
+      case "SEND_OWN_ANC_OK":
+        res = MessageType.SEND_OWN_ANC_OK;
+        break;
+      case "SEND_OWN_ANC_KO":
+        res = MessageType.SEND_OWN_ANC_KO;
+        break;
+      case "REQUEST_IP":
+        res = MessageType.REQUEST_IP;
+        break;
+      case "REQUEST_IP_OK":
+        res = MessageType.REQUEST_IP_OK;
+        break;
+      case "REQUEST_IP_KO":
+        res = MessageType.REQUEST_IP_KO;
+        break;
+      case "CONNECT_PAIR":
+        res = MessageType.CONNECT_PAIR;
+        break;
+      case "CONNECT_PAIR_REJECTED":
+        res = MessageType.CONNECT_PAIR_REJECTED;
+        break;
+      case "CONNECT_PAIR_OK":
+        res = MessageType.CONNECT_PAIR_OK;
+        break;
+      case "CONNECT_PAIR_KO":
+        res = MessageType.CONNECT_PAIR_KO;
+        break;
+      case "DISCONNECT_PAIR":
+        res = MessageType.DISCONNECT_PAIR;
+        break;
+      case "SEND_MSG":
+        res = MessageType.SEND_MSG;
+        break;
+      case "SEND_MSG_OK":
+        res = MessageType.SEND_MSG_OK;
+        break;
+      case "SEND_MSG_KO":
+        res = MessageType.SEND_MSG_KO;
+        break;
+      default:
+        throw new IllegalArgumentException("Message not supported");
+    }
+    return res;
+  }
   public enum MessageType {
 
     CONNECT("CONNECT"),
