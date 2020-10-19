@@ -6,10 +6,11 @@ Network Working Group                                            B. Viau
 Internet-Draft                                                 E. Marais
 Intended status: Experimental                                    C. Yvon
 Expires: 3 April 2021                                         G. Roumage
-Version 5                                                    L. Bergerat
-                                                                N. Quero
+Version 6                                                    L. Bergerat
+Obsolete: draft-5                                               N. Quero
                                                   N. Gillaizeau-Simonian
                                                               R. Gauchée
+                                                               R. Souadi
                                                           4 octobre 2020
 
 
@@ -85,41 +86,23 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
       la liste suivante:
 
          CONNECT
-
          CONNECT_OK
-
          CONNECT_NEW_USER_OK
-
          CONNECT_NEW_USER_KO
-
          CONNECT_KO
-
          DISCONNECT
-
          POST_ANC
-
          POST_ANC_OK
-
          POST_ANC_KO
-
          MAJ_ANC
-
          MAJ_ANC_OK
-
          MAJ_ANC_KO
-
          DELETE_ANC
-
          DELETE_ANC_OK
-
          DELETE_ANC_KO
-
          REQUEST_DOMAIN
-
          SEND_DOMAINE_OK
-
          SEND_DOMAIN_KO
-
          REQUEST_ANC
 
 
@@ -130,43 +113,28 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
 
          SEND_ANC_OK
-
          SEND_ANC_KO
-
          REQUEST_OWN_ANC
-
          SEND_OWN_ANC_OK
-
          SEND_OWN_ANC_KO
-
          REQUEST_IP
-
          REQUEST_IP_OK
-
          REQUEST_IP_KO
-
          CONNECT_PAIR
-
          CONNECT_PAIR_OK
-
          CONNECT_PAIR_REJECTED
-
          CONNECT_PAIR_OK
-
          CONNECT_PAIR_KO
-
          DISCONNECT_PAIR
-
          SEND_MSG
-
          SEND_MSG_OK
-
          SEND_MSG_KO
 
+   *  Chaque requête termine par une ligne avec ".\n".
    *  Il est possible d'ajouter des arguments à chaque message.  Les
       arguments sont représentés comme des chaînes de caractères
       espacées par des sauts de ligne '\n'.  La liste se termine par
-      une ligne avec un '.\n' si sa taille n'est pas connue à l'avance.
+      une ligne avec un '.\n'.
    *  Tous les arguments seront transmis en écriture naturelle. Ils seront
       lus comme des chaines de caractères (String), et convertis en d'autres
       types (int, float, double...) si nécessaire.
@@ -197,6 +165,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
    +--------------------------------+
    |CONNECT                         |
    |<utilisateur> ou token <token>  |
+   |.                               |
    +--------------------------------+
 
 2.3.1.2.  Action
@@ -215,6 +184,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
       +-------------+
       |CONNECT_OK   |
+      |.            |
       +-------------+
 
    *  En cas réussite avec création de token
@@ -222,12 +192,14 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
       +---------------------+
       |CONNECT_NEW_USER_OK  |
       |<token>              |
+      |.                    |
       +---------------------+
 
    *  En cas d'échec pour un⋅e nouvel⋅le utilisateur⋅rice
 
       +---------------------+
       |CONNECT_NEW_USER_KO  |
+      |.                    |
       +---------------------+
 
    *  En cas d'échec
@@ -244,6 +216,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
       +-------------+
       |CONNECT_KO   |
+      |.            |
       +-------------+
 
 2.3.2.  Déconnexion
@@ -252,6 +225,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
    +-------------+
    |DISCONNECT   |
+   |.            |
    +-------------+
 
 2.3.2.2.  Action
@@ -269,6 +243,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
    |<titre>           |
    |<descriptif>      |
    |<prix>            |
+   |.                 |
    +------------------+
 
 2.3.3.2.  Action
@@ -278,12 +253,14 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
       +------------------+
       |POST_ANC_OK       |
       |<id annonce>      |
+      |.                 |
       +------------------+
 
    *  En cas d'échec, il retourne
 
       +------------------+
       |POST_ANC_KO       |
+      |.                 |
       +------------------+
 
 2.3.4.  Mise à jour d'annonce
@@ -305,6 +282,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
    |<titre>           |
    |<descriptif>      |
    |<prix>            |
+   |.                 |
    +------------------+
 
    Dans le cas où la valeur ne doit pas être mise à jour, on insérera le
@@ -314,15 +292,18 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
    *  En cas de succès, le serveur met à jour l'annonce et renvoie
 
+      |SEND_MSG_KO       |
       +-----------------+
       |MAJ_ANC_OK       |
       |<id annonce>     |
+      |.                |
       +-----------------+
 
    *  En cas d'échec, il retourne
 
       +---------------+
       |MAJ_ANC_KO     |
+      |.              |
       +---------------+
 
 2.3.5.  Suppression d'annonce
@@ -330,8 +311,9 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 2.3.5.1.  Format
 
    +------------------+
-   | DELETE_ANC       |
+   |DELETE_ANC        |
    |<id annonce>      |
+   |.                 |
    +------------------+
 
 2.3.5.2.  Action
@@ -341,12 +323,14 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
       +--------------------+
       |DELETE_ANC_OK       |
       |<id annonce>        |
+      |.                   |
       +--------------------+
 
    *  En cas d'échec, il retourne
 
       +------------------+
       |DELETE_ANC_KO     |
+      |.                 |
       +------------------+
 
 
@@ -363,6 +347,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
    +-----------------+
    |REQUEST_DOMAIN   |
+   |.                |
    +-----------------+
 
 2.3.6.2.  Action
@@ -381,6 +366,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
       +------------------+
       |SEND_DOMAIN_KO    |
+      |.                 |
       +------------------+
 
 2.3.7.  Chercher parmi un domaine
@@ -390,6 +376,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
    +-------------+
    |REQUEST_ANC  |
    |<domaine>    |
+   |.            |
    +-------------+
 
 2.3.7.2.  Action
@@ -423,6 +410,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
       +----------------+
       |SEND_ANC_KO     |
+      |.               |
       +----------------+
 
 2.3.8.  Récupérer ses annonces
@@ -430,7 +418,8 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 2.3.8.1.  Format
 
    +------------------+
-   | REQUEST_OWN_ANC  |
+   |REQUEST_OWN_ANC   |
+   |.                 |
    +------------------+
 
 2.3.8.2.  Action
@@ -439,10 +428,12 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
       +------------------+
       |SEND_OWN_ANC_OK   |
+      |<id annonce 1>    |
       |<domaine 1>       |
       |<titre 1>         |
       |<descriptif 1>    |
       |<prix 1>          |
+      |<id annonce 2>    |
       |<domaine 2>       |
       |<titre 2>         |
       |<descriptif 2>    |
@@ -455,6 +446,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
       +--------------------+
       |SEND_OWN_ANC_KO     |
+      |.                   |
       +--------------------+
 
 2.3.9.  Récupérer l'adresse IP d'un tier connecté
@@ -463,7 +455,8 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
    +------------------+
    |REQUEST_IP        |
-   |<utilisateur>     |
+   |<id annonce>      |
+   |.                 |
    +------------------+
 
 2.3.9.2.  Action
@@ -473,6 +466,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
       +--------------------+
       |REQUEST_IP_OK       |
       |<ip>                |
+      |.                   |
       +--------------------+
 
 
@@ -487,6 +481,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
       +--------------------+
       |REQUEST_IP_KO       |
+      |.                   |
       +--------------------+
 
 3.  Protocole pair à pair
@@ -502,7 +497,8 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
    +--------------------------+
    |CONNECT_PAIR              |
-   | <utilisateur à contacter>|
+   |<utilisateur à contacter> |
+   |.                         |
    +--------------------------+
 
 3.2.2.  Action
@@ -511,18 +507,22 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
       +----------------------+
       |CONNECT_PAIR_OK       |
+      |.                     |
       +----------------------+
 
    *  En cas d'échec, si le client refuse la connexion, il renvoie
 
       +----------------------------+
       |CONNECT_PAIR_REJECTED       |
+      |.                           |
       +----------------------------+
 
    *  En cas d'échec, il retourne
+      |SEND_MSG_KO       |
 
       +----------------------+
       |CONNECT_PAIR_KO       |
+      |.                     |
       +----------------------+
 
 3.3.  Déconnexion
@@ -540,6 +540,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
    +------------------+
    |DISCONNECT_PAIR   |
+   |.                 |
    +------------------+
 
 3.3.2.  Action
@@ -554,6 +555,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
    +-------------+
    |SEND_MSG     |
    |<message>    |
+   |.            |
    +-------------+
 
 3.4.2.  Action
@@ -562,12 +564,14 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
       +------------------+
       |SEND_MSG_OK       |
+      |.                 |
       +------------------+
 
    *  En cas d'échec, il retourne
 
       +------------------+
       |SEND_MSG_KO       |
+      |.                 |
       +------------------+
 
 
