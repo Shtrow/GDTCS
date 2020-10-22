@@ -7,6 +7,7 @@
 package server;
 
 import common.Logs;
+import common.Index;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -16,6 +17,7 @@ import java.util.LinkedList;
 
 public class Server {
 	private ServerSocket server = null;
+	private Index index;
 
 	public Server(int port) {
 		try {
@@ -33,7 +35,7 @@ public class Server {
 			try {
 				Socket s = server.accept();
 				Logs.log("New connection with the server");
-				new Handler(s).run();
+				new Handler(index, s).run();
 			} catch (IOException e) {
 				Logs.warning("Try to handle new connection but failed -> continue");
 				continue;
