@@ -17,11 +17,12 @@ import java.util.LinkedList;
 
 public class Server {
 	private ServerSocket server = null;
-	private Index index;
+	private Index index = null;
 
 	public Server(int port) {
 		try {
 			server = new ServerSocket(port);
+			index = Index.getIndex();
 		} catch (IOException e) {
 			Logs.error("Can't bind socket on port: " + port);
 		}
@@ -35,7 +36,7 @@ public class Server {
 			try {
 				Socket s = server.accept();
 				Logs.log("New connection with the server");
-				new Handler(index, s).run();
+				new Handler(index, s).start();
 			} catch (IOException e) {
 				Logs.warning("Try to handle new connection but failed -> continue");
 				continue;
