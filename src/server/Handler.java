@@ -20,9 +20,10 @@ public class Handler extends Thread {
 	private Socket s = null;
 	private BufferedReader in = null;
 	private PrintWriter out = null;
+	private boolean wantAnExit = false;
 
-	private String addr = "NULL";
-	private String name = "";
+	private String addr = null;
+	private String name = null;
 	private Index index = null;
 
 	public Handler(Index index, Socket s) {
@@ -34,7 +35,7 @@ public class Handler extends Thread {
 			Logs.log("Socket bind to a new thread -> manage the new connection for " + addr);
 		} else {
 			Logs.error("Socket s is null -> exit the Thread for " + addr);
-			System.exit(1);
+			wantAnExit = true;
 		}
 	}
 
@@ -44,7 +45,7 @@ public class Handler extends Thread {
 			this.out = new PrintWriter(s.getOutputStream());
 		} catch (IOException e) {
 			Logs.error("Can't set input and output flux for -> exit the thread for " + addr);
-			System.exit(1);
+			wantAnExit = true;
 		}
 	}
 
@@ -63,7 +64,8 @@ public class Handler extends Thread {
 			}
 			if (data == null) {
 				Logs.error("Client has been disconnected for " + addr + " -> closing connection");
-				disconnect();
+				wantAnExit = true;
+				return null;
 			}
 			buffer = buffer.trim();
 			return Message.stringToMessage(buffer);
@@ -72,6 +74,7 @@ public class Handler extends Thread {
 			return null;
 		} catch (NullPointerException e) {
 			Logs.warning("Write on a close channel for " + addr + " -> drop channel");
+			wantAnExit = true;
 			return null;
 		} catch (IOException e) {
 			Logs.warning("An IOException occured on " + addr + " -> skipping");
@@ -82,7 +85,9 @@ public class Handler extends Thread {
 	private void disconnect() {
 		if (s != null) {
 			try {
-				index.removeUser(name);
+				if(name != null) {
+					index.removeUser(name);
+				}
 				s.close();
 				Logs.log("Thread socket closed for " + addr);
 			} catch (IOException e) {
@@ -91,7 +96,6 @@ public class Handler extends Thread {
 		} else {
 			Logs.warning("Thread socket already closed for " + addr);
 		}
-		System.exit(0);
 	}
 
 	private void sendConnect(String[] args, boolean newUser, boolean send) {
@@ -109,6 +113,7 @@ public class Handler extends Thread {
 			} else {
 				msg = new Message(Message.MessageType.CONNECT_NEW_USER_KO);
 			}
+			Logs.warning("Connection failed with " + addr + " -> retrying with new method");
 		}
 		write(msg);
 	}
@@ -151,7 +156,8 @@ public class Handler extends Thread {
 				connect(m);
 				break;
 			case DISCONNECT:
-				disconnect();
+				wantAnExit = true;
+				Logs.log("Ask for deconnection for " + addr);
 				break;
 			default:
 				Logs.warning("Unknown header for " + addr + " -> skipping\n" + m);
@@ -160,9 +166,8 @@ public class Handler extends Thread {
 	}
 
 	public void run() {
-		Logs.log("Thread server is running");
 		boolean run = true;
-		while (run) {
+		while (run && !wantAnExit) {
 			Message m = read();
 			if (m != null) {
 				handler(m);
@@ -170,5 +175,6 @@ public class Handler extends Thread {
 				continue;
 			}
 		}
+	disconnect();
 	}
 }

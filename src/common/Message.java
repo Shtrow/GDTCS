@@ -46,7 +46,7 @@ public class Message {
   }
 
   public static Message stringToMessage(String sMessage) {
-    String[] tokens = sMessage.substring(0, sMessage.length() - 2).split("\n");
+    String[] tokens = sMessage.substring(0, sMessage.length()).split("\n");
     MessageType type = stringToMessageType(tokens[0]);
     String[] args = (tokens.length < 2) ? null : Arrays.copyOfRange(tokens, 1, tokens.length);
     return new Message(type, args);
