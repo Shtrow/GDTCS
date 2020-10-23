@@ -2,6 +2,7 @@
 /**
  * GDTService
  */
+package client;
 import common.Message;
 
 import java.io.BufferedReader;
@@ -20,15 +21,18 @@ import java.util.function.Supplier;
 public class GDTService implements Runnable {
   public Socket socket;
   int SERV_PORT;
-  String SERV_ADDR = "localhost";
+  String SERV_ADDR;
 
   BufferedReader in;
   PrintWriter out;
 
+  private int timeOut;
 
-  public GDTService(String serverAddress, int serverPort) throws IOException {
+
+  public GDTService(String serverAddress, int serverPort, int timeOut) throws IOException {
     this.SERV_PORT = serverPort;
     this.SERV_ADDR = serverAddress;
+    this.timeOut = timeOut;
     socket = new Socket(InetAddress.getByName(SERV_ADDR),SERV_PORT);
 
     in =
@@ -40,21 +44,25 @@ public class GDTService implements Runnable {
 
     public GDTService() throws IOException {
 //    Default socket address
-      this("localhost",1027);
+      this("localhost",1027,5);
     }
 
     private String readMessage() throws IOException {
       String message = "";
+      String packet = "";
       do {
-        message += in.readLine();
+        packet = in.readLine();
+        message += (packet + "\n");
+//        System.out.println(message);
       }
-      while(!message.equals(".")  );
+      while(packet !=null && !packet.equals("."));
       return message;
     }
 
     public CompletableFuture<Message> askFor(Message request){
       return CompletableFuture.supplyAsync( () ->  {
-        out.print(request);
+        out.print(request.toNetFormat());
+        out.flush();
         try {
           return Message.stringToMessage(readMessage());
         } catch (IOException e) {
@@ -63,7 +71,7 @@ public class GDTService implements Runnable {
         return null;
       }
 
-      );
+      ).orTimeout(5,TimeUnit.SECONDS);
     }
   @Override
   public void run() {

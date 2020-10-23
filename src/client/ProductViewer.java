@@ -1,3 +1,6 @@
+
+package client;
+
 import java.util.Arrays;
 
 public class ProductViewer {
