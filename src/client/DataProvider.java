@@ -14,6 +14,8 @@ public class DataProvider {
     this.service = service;
   }
   ProductViewer productViewer = new ProductViewer();
+  String userName = null;
+  String token = null;
 
   private static void basicRequest(Message message,
                                    Message.MessageType expected,
@@ -22,20 +24,40 @@ public class DataProvider {
                                    Consumer<Message> failure) {
     if(message.getType() == expected) success.accept(message);
     else if(message.getType() == expected) failure.accept(message);
-    else {System.out.println("Communication error \n"+ message.toNetFormat());}
+    else {System.out.println("Communication error \nServer response :"+ message.toNetFormat());}
     // Fill the Logger
   }
 
   public void connect(){
-    Message message = new Message(Message.MessageType.CONNECT, new String[]{"Gontran Girodon"});
+    if(token == null){
+      System.out.println("The first time you connect, you have to choose a user name. \n connect [user name]");
+      return;
+    }
+    Message message = new Message(Message.MessageType.CONNECT, new String[]{token});
     service.askFor(message)
     .thenAcceptAsync(
             m -> {
               basicRequest(m, Message.MessageType.CONNECT_OK, Message.MessageType.CONNECT_KO,
-                      v -> System.out.println("Connected !"),
+                      v -> System.out.println("Connected! Welcome back "+userName),
                       v -> System.out.println("Connection refused by the server"));
             }
     );
+  }
+
+  public void connect(String userName) {
+    this.userName = userName;
+    Message message = new Message(Message.MessageType.CONNECT, new String[]{userName});
+    service.askFor(message)
+            .thenAcceptAsync(
+                    m -> {
+                      basicRequest(m, Message.MessageType.CONNECT_NEW_USER_OK, Message.MessageType.CONNECT_NEW_USER_KO,
+                              v -> {
+                                this.token = m.getArgs()[1];
+                                System.out.println("Connected! Welcome "+userName);
+                              },
+                              v -> System.out.println("Connection refused by the server"));
+                    }
+            );
   }
 
   public String[][] getProductByDomain(String domain){

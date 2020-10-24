@@ -33,13 +33,7 @@ public class GDTService implements Runnable {
     this.SERV_PORT = serverPort;
     this.SERV_ADDR = serverAddress;
     this.timeOut = timeOut;
-    socket = new Socket(InetAddress.getByName(SERV_ADDR),SERV_PORT);
 
-    in =
-            new BufferedReader(
-                    new InputStreamReader(socket.getInputStream()));
-    out =
-            new PrintWriter(socket.getOutputStream(),true);
   }
 
     public GDTService() throws IOException {
@@ -53,7 +47,6 @@ public class GDTService implements Runnable {
       do {
         packet = in.readLine();
         message += (packet + "\n");
-//        System.out.println(message);
       }
       while(packet !=null && !packet.equals("."));
       return message;
@@ -75,6 +68,16 @@ public class GDTService implements Runnable {
     }
   @Override
   public void run() {
+    try {
+      socket = new Socket(InetAddress.getByName(SERV_ADDR),SERV_PORT);
 
+      in =
+              new BufferedReader(
+                      new InputStreamReader(socket.getInputStream()));
+      out =
+              new PrintWriter(socket.getOutputStream(),true);
+    } catch (IOException e) {
+      System.out.println(e.getMessage());
+    }
   }
 }
