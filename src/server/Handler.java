@@ -102,16 +102,16 @@ public class Handler extends Thread {
 		Message msg = null;
 		if(send) {
 			if (newUser) {
-				msg = new Message(Message.MessageType.CONNECT_OK, args);
-			} else {
 				msg = new Message(Message.MessageType.CONNECT_NEW_USER_OK, args);
+			} else {
+				msg = new Message(Message.MessageType.CONNECT_OK, args);
 			}
 			Logs.log("Connection complete with " + name + " on " + addr);
 		} else  {
 			if(newUser) {
-				msg = new Message(Message.MessageType.CONNECT_KO);
-			} else {
 				msg = new Message(Message.MessageType.CONNECT_NEW_USER_KO);
+			} else {
+				msg = new Message(Message.MessageType.CONNECT_KO);
 			}
 			Logs.warning("Connection failed with " + addr + " -> retrying with new method");
 		}
