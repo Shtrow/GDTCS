@@ -9,11 +9,14 @@ public class Client {
 		String userName = "Maitre Simonard";
 
 		client.GDTService GDTService = new GDTService();
+		GDTService.run();
 
 		DataProvider dataProvider = new DataProvider(GDTService);
 
     	Controller c = new Controller(dataProvider);
+
     	c.run();
+
 		System.out.println("Running client [OK]");
 	}
 }
