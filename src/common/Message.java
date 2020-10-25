@@ -2,37 +2,54 @@ package common;
 
 import java.util.Arrays;
 
-public class Message{
+public class Message {
   private MessageType type;
   private String[] args;
-  
-  //Constructors
-  public Message(MessageType type, String[] args){
+
+  // Constructors
+  public Message(MessageType type, String[] args) {
     this.type = type;
     this.args = args;
   }
-  public Message(MessageType type){
+
+  public Message(MessageType type) {
     this.type = type;
     this.args = null;
   }
-  
+
+  public String[] getArgs() {
+    return args;
+  }
+
+  public MessageType getType() {
+    return type;
+  }
+
+  public void setArgs(String[] args) {
+    this.args = args;
+  }
+
+  public void setType(MessageType type) {
+    this.type = type;
+  }
+
   public String toNetFormat() {
     String res = type.toString();
     res += "\n";
-    if(args != null){
-      for (String arg : args){
+    if (args != null) {
+      for (String arg : args) {
         res += arg + "\n";
       }
     }
     res += ".\n";
     return res;
   }
-  
-  public static Message stringToMessage(String sMessage){
-    String[] tokens = sMessage.substring(0,sMessage.length()-2).split("\n");
+
+  public static Message stringToMessage(String sMessage) {
+    String[] tokens = sMessage.substring(0, sMessage.length()).split("\n");
     MessageType type = stringToMessageType(tokens[0]);
-    String[] args = (tokens.length<2)? null : Arrays.copyOfRange(tokens, 1, tokens.length);
-    return new Message(type,args);
+    String[] args = (tokens.length < 2) ? null : Arrays.copyOfRange(tokens, 1, tokens.length);
+    return new Message(type, args);
   }
 
   private static MessageType stringToMessageType(String stringType) {
@@ -148,6 +165,7 @@ public class Message{
     }
     return res;
   }
+
   public enum MessageType {
 
     CONNECT("CONNECT"),
@@ -222,7 +240,7 @@ public class Message{
 
     private String name;
 
-    private MessageType(String name){
+    private MessageType(String name) {
       this.name = name;
     }
 
