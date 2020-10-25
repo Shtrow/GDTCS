@@ -49,12 +49,19 @@ public class GDTService implements Runnable {
         message += (packet + "\n");
       }
       while(packet !=null && !packet.equals("."));
+      System.out.println("received :\n"+message);
       return message;
     }
 
+    public void send(Message message){
+      out.print(message.toNetFormat());
+      out.flush();
+    }
     public CompletableFuture<Message> askFor(Message request){
       return CompletableFuture.supplyAsync( () ->  {
-        out.print(request.toNetFormat());
+                System.out.println("sending :\n"+request.toNetFormat());
+
+                out.print(request.toNetFormat());
         out.flush();
         try {
           return Message.stringToMessage(readMessage());

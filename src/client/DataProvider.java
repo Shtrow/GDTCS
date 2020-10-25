@@ -35,7 +35,7 @@ public class DataProvider {
     }
     Message message = new Message(Message.MessageType.CONNECT, new String[]{token});
     service.askFor(message)
-    .thenAcceptAsync(
+    .thenAccept(
             m -> {
               basicRequest(m, Message.MessageType.CONNECT_OK, Message.MessageType.CONNECT_KO,
                       v -> System.out.println("Connected! Welcome back "+userName),
@@ -48,16 +48,21 @@ public class DataProvider {
     this.userName = userName;
     Message message = new Message(Message.MessageType.CONNECT, new String[]{userName});
     service.askFor(message)
-            .thenAcceptAsync(
+            .thenAccept(
                     m -> {
                       basicRequest(m, Message.MessageType.CONNECT_NEW_USER_OK, Message.MessageType.CONNECT_NEW_USER_KO,
                               v -> {
-                                this.token = m.getArgs()[1];
-                                System.out.println("Connected! Welcome "+userName);
+                                this.token = "#" + m.getArgs()[0];
+                                System.out.println("Connected! Welcome "+userName+"\n Your token is : "+token);
                               },
                               v -> System.out.println("Connection refused by the server"));
                     }
             );
+  }
+
+  public void disconnect(){
+    service.send(new Message(Message.MessageType.DISCONNECT));
+    System.out.println("Disconnected");
   }
 
   public String[][] getProductByDomain(String domain){
