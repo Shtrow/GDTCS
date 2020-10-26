@@ -82,7 +82,19 @@ public class Index {
 		return cache.get(ip);
 	}
 
-	public String getUserFromToken(String token) {
+	public synchronized String getIpFromUser(String user) {
+		Enumeration<String> ipKeys = cache.keys();
+		while (ipKeys.hasMoreElements()) {
+			String ip = ipKeys.nextElement();
+			if (cache.get(ip).equals(user)) {
+				return ip;
+			}
+		}
+		return null;
+
+	}
+
+	public synchronized String getUserFromToken(String token) {
 		Enumeration<String> userKeys = users.keys();
 		while (userKeys.hasMoreElements()) {
 			String user = userKeys.nextElement();
@@ -93,7 +105,7 @@ public class Index {
 		return null;
 	}
 
-	public boolean isValidToken(String token) {
+	public synchronized boolean isValidToken(String token) {
 		Enumeration<String> userKeys = users.keys();
 		while (userKeys.hasMoreElements()) {
 			String currentUser = userKeys.nextElement();
@@ -104,7 +116,7 @@ public class Index {
 		return false;
 	}
 
-	public boolean isValidUser(String user) {
+	public synchronized boolean isValidUser(String user) {
 		return users.containsKey(user);
 	}
 }
