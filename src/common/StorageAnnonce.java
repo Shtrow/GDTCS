@@ -6,6 +6,7 @@ import common.Domaine;
 import java.util.TreeMap;
 import java.util.Hashtable;
 import java.util.Set;
+import java.util.LinkedList;
 
 public class StorageAnnonce {
 	private TreeMap<Domaine.DomaineType, Hashtable<String, Annonce>> storage;
@@ -65,6 +66,29 @@ public class StorageAnnonce {
 		int i = 0;
 		for(Domaine.DomaineType domaine : domaines) {
 			args[i] = domaine.toString();
+		}
+		return args;
+	}
+
+	public synchronized String[] getUserAnc(String user) {
+		LinkedList<Annonce> userAnc = new LinkedList<Annonce>();
+		int length = 0;
+		for(Hashtable<String, Annonce> domaine : storage.values()) {
+			for(Annonce anc : domaine.values()) {
+				if(anc.getUser().equals(user)) {
+					userAnc.push(anc);
+					length++;
+				}
+			}
+		}
+		String[] args = new String[length*5];
+		for(int i = 0 ; i < length ; i=i+5) {
+			String[] argsAnc = userAnc.pop().toStringArgs();
+			args[i] = argsAnc[0];
+			args[i+1] = argsAnc[1];
+			args[i+2] = argsAnc[2];
+			args[i+3] = argsAnc[3];
+			args[i+4] = argsAnc[4];
 		}
 		return args;
 	}
