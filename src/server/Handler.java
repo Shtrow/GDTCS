@@ -15,6 +15,9 @@ import java.net.SocketException;
 import common.Index;
 import common.Logs;
 import common.Message;
+import common.StorageAnnonce;
+import common.Domaine;
+import common.Annonce;
 
 public class Handler extends Thread {
 	private Socket s = null;
@@ -25,6 +28,7 @@ public class Handler extends Thread {
 	private String addr = null;
 	private String name = null;
 	private Index index = null;
+	private StorageAnnonce store = null;
 
 	public Handler(Index index, Socket s) {
 		if (s != null) {
@@ -47,6 +51,14 @@ public class Handler extends Thread {
 			Logs.error("Can't set input and output flux for -> exit the thread for " + addr);
 			wantAnExit = true;
 		}
+	}
+
+	private boolean notConnected() {
+		if(name == null) {
+			Message m = new Message(Message.MessageType.NOT_CONNECTED);
+			write(m);
+		}
+		return name == null;
 	}
 
 	private void write(Message m) {
@@ -83,6 +95,7 @@ public class Handler extends Thread {
 	}
 
 	private void disconnect() {
+		if(notConnected()) return;
 		if (s != null) {
 			try {
 				if(name != null) {
@@ -150,6 +163,133 @@ public class Handler extends Thread {
 		}
 	}
 
+	private void unknown() {
+		Message unknown = new Message(Message.MessageType.UNKNOWN_REQUEST);
+		write(unknown);
+	}
+
+	private void postAnc(Message m) {
+		if(notConnected()) return;
+		String[] args = m.getArgs();
+		Message response = null;
+		if(args != null && args.length == 4) {
+			try {
+				Annonce anc = new Annonce(name, args[0], args[1], args[2], args[3]);
+				if(store.addAnnonce(anc)) {
+					String[] argSent = { anc.getId() };
+					response = new Message(Message.MessageType.POST_ANC_OK, argSent);
+				}
+			} catch(IllegalArgumentException e) {}
+		}
+		if(response == null) {
+			response = new Message(Message.MessageType.POST_ANC_KO);
+		}
+		write(response);
+	}
+
+	private void majAnc(Message m) {
+		if(notConnected()) return;
+		String[] args = m.getArgs();
+		Message response = null;
+		if(args != null && args.length > 0) {
+			Annonce anc = store.find(args[0]);
+			if(anc != null) {
+				if(anc.updateWithArgs(args)) {
+					String[] argSent = { anc.getId() };
+					response = new Message(Message.MessageType.MAJ_ANC_OK, argSent);
+				}
+			}
+		}
+		if(response == null) {
+			response = new Message(Message.MessageType.MAJ_ANC_KO);
+		}
+		write(response);
+	}
+
+	private void deleteAnc(Message m) {
+		if(notConnected()) return;
+		String[] args = m.getArgs();
+		Message response = null;
+		if(args != null && args.length == 1) {
+			Annonce anc = store.find(args[0]);
+			if(anc != null) {
+				if(store.deleteAnnonce(anc)) {
+					String[] argSent = { anc.getId() };
+					response = new Message(Message.MessageType.DELETE_ANC_OK);
+				}
+			}
+		}
+		if(response == null) {
+			m = new Message(Message.MessageType.DELETE_ANC_KO);
+		}
+		write(response);
+	}
+
+	private void requestDomain() {
+		if(notConnected()) return;
+		String[] argsSent = store.getDomaines();
+		Message response = null;
+		if(argsSent.length > 0) {
+			response = new Message(Message.MessageType.SEND_DOMAINE_OK, argsSent);
+		} else {
+			response = new Message(Message.MessageType.SEND_DOMAIN_KO);
+		}
+		write(response);
+	}
+
+	private void requestAnc(Message m) {
+		if(notConnected()) return;
+		String[] args = m.getArgs();
+		Message response = null;
+		if(args != null && args.length == 1) {
+			try {
+				Domaine.DomaineType d = Domaine.fromString(args[0]);
+				String[] argsSent = store.getAncFromDomaine(d);
+				if(argsSent != null && argsSent.length > 0) {
+					response = new Message(Message.MessageType.SEND_ANC_OK, argsSent);
+				}
+			} catch(IllegalArgumentException e) {}
+		}
+		if(response == null) {
+			response = new Message(Message.MessageType.SEND_ANC_KO);
+		}
+		write(response);
+	}
+
+	private void requestOwnAnc() {
+		if(notConnected()) return;
+		String[] argsSent = store.getUserAnc(name);
+		Message response = null;
+		if(argsSent != null) {
+			response = new Message(Message.MessageType.SEND_OWN_ANC_OK, argsSent);
+		} else {
+			response = new Message(Message.MessageType.SEND_OWN_ANC_KO);
+		}
+		write(response);
+	}
+
+	private void requestIp(Message m) {
+		if(notConnected()) return;
+		String[] args = m.getArgs();
+		Message response = null;
+		if(args != null && args.length == 1) {
+			Annonce anc = store.find(args[0]);
+			if(anc != null) {
+				String ip = index.getIpFromUser(anc.getUser());
+				if(ip != null) {
+					String[] argsSent = new String[2];
+					argsSent[0] = ip;
+					argsSent[1] = anc.getUser();
+					response = new Message(Message.MessageType.REQUEST_IP_OK, argsSent);
+				}
+			}
+		}
+		if(response == null) {
+			response = new Message(Message.MessageType.REQUEST_IP_KO);
+		}
+		write(m);
+	}
+
 	private void handler(Message m) {
 		switch (m.getType()) {
 			case CONNECT:
@@ -159,8 +299,30 @@ public class Handler extends Thread {
 				wantAnExit = true;
 				Logs.log("Ask for deconnection for " + addr);
 				break;
+			case POST_ANC:
+				postAnc(m);
+				break;
+			case MAJ_ANC:
+				majAnc(m);
+				break;
+			case DELETE_ANC:
+				deleteAnc(m);
+				break;
+			case REQUEST_DOMAIN:
+				requestDomain();
+				break;
+			case REQUEST_ANC:
+				requestAnc(m);
+				break;
+			case REQUEST_OWN_ANC:
+				requestOwnAnc();
+				break;
+			case REQUEST_IP:
+				requestIp(m);
+				break;
 			default:
 				Logs.warning("Unknown header for " + addr + " -> skipping\n" + m);
+				unknown();
 				break;
 		}
 	}
