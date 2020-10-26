@@ -70,6 +70,9 @@ public class Message {
       case "CONNECT_KO":
         res = MessageType.CONNECT_KO;
         break;
+      case "NOT_CONNECTED":
+        res = MessageType.NOT_CONNECTED;
+        break;
       case "DISCONNECT":
         res = MessageType.DISCONNECT;
         break;
@@ -136,6 +139,9 @@ public class Message {
       case "REQUEST_IP_KO":
         res = MessageType.REQUEST_IP_KO;
         break;
+      case "UNKNOWN_REQUEST":
+        res = MessageType.UNKNOWN_REQUEST;
+        break;
       case "CONNECT_PAIR":
         res = MessageType.CONNECT_PAIR;
         break;
@@ -177,6 +183,8 @@ public class Message {
     CONNECT_NEW_USER_KO("CONNECT_NEW_USER_KO"),
 
     CONNECT_KO("CONNECT_KO"),
+
+    NOT_CONNECTED("NOT_CONNECTED"),
 
     DISCONNECT("DISCONNECT"),
 
@@ -221,6 +229,8 @@ public class Message {
     REQUEST_IP_OK("REQUEST_IP_OK"),
 
     REQUEST_IP_KO("REQUEST_IP_KO"),
+
+    UNKNOWN_REQUEST("UNKNOWN_REQUEST"),
 
     CONNECT_PAIR("CONNECT_PAIR"),
 
