@@ -1,7 +1,10 @@
 package client;
 
+import common.Annonce;
+import common.Logs;
 import common.Message;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -22,9 +25,11 @@ public class DataProvider {
                                    Message.MessageType error,
                                    Consumer<Message> success,
                                    Consumer<Message> failure) {
+    if (message == null) {Logs.error("Server does not respond"); return;}
     if(message.getType() == expected) success.accept(message);
     else if(message.getType() == expected) failure.accept(message);
-    else {System.out.println("Communication error \nServer response :"+ message.toNetFormat());}
+    //TODO : Add NO_CONNECTED and UNKNOWN_REQUEST cases
+    else {Logs.error("Communication error \nServer response :"+ message.toNetFormat());}
     // Fill the Logger
   }
 
@@ -63,10 +68,23 @@ public class DataProvider {
   public void disconnect(){
     service.send(new Message(Message.MessageType.DISCONNECT));
     System.out.println("Disconnected");
+    System.exit(1);
   }
 
-  public String[][] getProductByDomain(String domain){
-    return null;
+  public void getProductByDomain(String domain){
+    Message message = new Message(Message.MessageType.REQUEST_ANC, new String[]{domain});
+    Consumer<Message> successBehavior = answer -> {
+      //TODO: DISPLAY CORRECTLY
+      Logs.log(answer.toNetFormat());
+    };
+    Consumer<Message> failBehaviour = answer -> {Logs.error("Domain not found");};
+    service.askFor(message).
+            thenAccept(
+              answer->{
+                basicRequest(answer, Message.MessageType.SEND_ANC_OK, Message.MessageType.SEND_ANC_KO,successBehavior,failBehaviour);
+              }
+            );
+
   }
 
   public String[][] getDomain(){
@@ -77,10 +95,10 @@ public class DataProvider {
     Message message = new Message(Message.MessageType.REQUEST_OWN_ANC);
     var answer = service.askFor(message);
     Consumer<Message> successBehavior = m -> {
-      System.out.println("Annonce posted ! \n");
+      System.out.println("My posts : \n");
       productViewer.displayProductList(m.getArgs());
     };
-    Consumer<Message> failBehavior = m -> System.out.println("The server refused your annonce");
+    Consumer<Message> failBehavior = m -> Logs.error("Post not found");
     answer.thenAccept(
             m -> basicRequest(m, Message.MessageType.SEND_ANC_OK, Message.MessageType.SEND_ANC_KO,successBehavior,failBehavior)
     );
@@ -90,7 +108,7 @@ public class DataProvider {
     Message message = new Message(Message.MessageType.POST_ANC,annonce);
     var answer = service.askFor(message);
     Consumer<Message> successBehavior = m -> System.out.println("Annonce posted !");
-    Consumer<Message> failBehavior = m -> System.out.println("The server refused your annonce");
+    Consumer<Message> failBehavior = m -> Logs.error("The server refused your annonce");
     answer.thenAcceptAsync(
             m -> basicRequest(m, Message.MessageType.POST_ANC_OK, Message.MessageType.POST_ANC_KO,successBehavior,failBehavior)
     );

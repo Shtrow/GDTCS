@@ -42,18 +42,31 @@ public class Controller implements Runnable {
             dataProvider.connect(tokens[1]);
           };
         }
-
+      case "delete":
+        if(tokens.length <2){
+          return missingArg;
+        }
+        else {
+          return () -> {
+            dataProvider.deleteAnc(tokens[1]);
+          };
+        }
       case "post":
         if (tokens.length<5) return missingArg;
         else {
           return (() -> dataProvider.postAnc(Arrays.copyOfRange(tokens,1,tokens.length)));
+        }
+      case "update" :
+        if (tokens.length<5) return missingArg;
+        else {
+          return (() -> dataProvider.updateAnc(Arrays.copyOfRange(tokens,1,tokens.length)));
         }
       case "disconnect":
         return dataProvider::disconnect;
       case "echo":
         return () -> System.out.println(command);
       default:
-        return () -> {};
+        return () -> System.out.println("Command not found");
     }
 
 
