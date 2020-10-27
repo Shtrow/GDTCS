@@ -30,12 +30,13 @@ public class Handler extends Thread {
 	private Index index = null;
 	private StorageAnnonce store = null;
 
-	public Handler(Index index, Socket s) {
+	public Handler(Socket s) {
 		if (s != null) {
 			this.s = s;
 			this.addr = s.getInetAddress().toString();
 			setInAndOut();
-			this.index = index;
+			this.index = Index.getIndex();
+			this.store = StorageAnnonce.getStore();
 			Logs.log("Socket bind to a new thread -> manage the new connection for " + addr);
 		} else {
 			Logs.error("Socket s is null -> exit the Thread for " + addr);
@@ -57,6 +58,7 @@ public class Handler extends Thread {
 		if(name == null) {
 			Message m = new Message(Message.MessageType.NOT_CONNECTED);
 			write(m);
+			Logs.warning("Access without connection from " + addr);
 		}
 		return name == null;
 	}
@@ -143,13 +145,14 @@ public class Handler extends Thread {
 				if(index.isValidToken(argSend[0])) {
 					name = index.getUserFromToken(argSend[0]);
 					if (name == null) { send = false; }
-					index.addIp(addr, name);
+					index.updateIp(addr, name);
 				} else { send = false; }
 			} else { // ------------------------------------ User
 				name = args[0];
 				if(index.isValidUser(name)) {
 					argSend[0] = index.getToken(name);
 					if(argSend[0] == null) { argSend[0] = index.initNewToken(name); }
+					index.updateIp(addr, name);
 				} else {
 					newUser = true;
 					if(index.addUser(name, addr)) {
@@ -163,9 +166,10 @@ public class Handler extends Thread {
 		}
 	}
 
-	private void unknown() {
+	private void unknown(Message m) {
 		Message unknown = new Message(Message.MessageType.UNKNOWN_REQUEST);
 		write(unknown);
+		Logs.warning("Unknown header for " + addr + " -> skipping\n" + m);
 	}
 
 	private void postAnc(Message m) {
@@ -178,10 +182,12 @@ public class Handler extends Thread {
 				if(store.addAnnonce(anc)) {
 					String[] argSent = { anc.getId() };
 					response = new Message(Message.MessageType.POST_ANC_OK, argSent);
+					Logs.log("Create a new anc for " + addr + " with " + name);
 				}
 			} catch(IllegalArgumentException e) {}
 		}
 		if(response == null) {
+			Logs.warning("Failed posting new anc from " + addr + " with " + name);
 			response = new Message(Message.MessageType.POST_ANC_KO);
 		}
 		write(response);
@@ -197,11 +203,13 @@ public class Handler extends Thread {
 				if(anc.updateWithArgs(args)) {
 					String[] argSent = { anc.getId() };
 					response = new Message(Message.MessageType.MAJ_ANC_OK, argSent);
+					Logs.log("Update anc for " + addr + " with " + name);
 				}
 			}
 		}
 		if(response == null) {
 			response = new Message(Message.MessageType.MAJ_ANC_KO);
+			Logs.warning("Failed updating anc for " + addr + " with " + name);
 		}
 		write(response);
 	}
@@ -216,11 +224,13 @@ public class Handler extends Thread {
 				if(store.deleteAnnonce(anc)) {
 					String[] argSent = { anc.getId() };
 					response = new Message(Message.MessageType.DELETE_ANC_OK);
+					Logs.log("Delete anc for " + addr + " with " + name);
 				}
 			}
 		}
 		if(response == null) {
 			m = new Message(Message.MessageType.DELETE_ANC_KO);
+			Logs.warning("Failed deleting anc for " + addr + " with " + name);
 		}
 		write(response);
 	}
@@ -231,8 +241,10 @@ public class Handler extends Thread {
 		Message response = null;
 		if(argsSent.length > 0) {
 			response = new Message(Message.MessageType.SEND_DOMAINE_OK, argsSent);
+			Logs.log("Send domains to " + addr + " with " + name);
 		} else {
 			response = new Message(Message.MessageType.SEND_DOMAIN_KO);
+			Logs.warning("Failed sending domains to " + addr + " with " + name);
 		}
 		write(response);
 	}
@@ -247,11 +259,13 @@ public class Handler extends Thread {
 				String[] argsSent = store.getAncFromDomaine(d);
 				if(argsSent != null && argsSent.length > 0) {
 					response = new Message(Message.MessageType.SEND_ANC_OK, argsSent);
+					Logs.log("Request anc for " + addr + " with " + name);
 				}
 			} catch(IllegalArgumentException e) {}
 		}
 		if(response == null) {
 			response = new Message(Message.MessageType.SEND_ANC_KO);
+			Logs.warning("Failed requesting anc for " + addr + " with " + name);
 		}
 		write(response);
 	}
@@ -262,8 +276,10 @@ public class Handler extends Thread {
 		Message response = null;
 		if(argsSent != null) {
 			response = new Message(Message.MessageType.SEND_OWN_ANC_OK, argsSent);
+			Logs.log("Request own anc for " + addr + " with " + name);
 		} else {
 			response = new Message(Message.MessageType.SEND_OWN_ANC_KO);
+			Logs.warning("Failed requesting own anc for " + addr + " with " + name);
 		}
 		write(response);
 	}
@@ -278,16 +294,18 @@ public class Handler extends Thread {
 				String ip = index.getIpFromUser(anc.getUser());
 				if(ip != null) {
 					String[] argsSent = new String[2];
-					argsSent[0] = ip;
+					argsSent[0] = ip.substring(1);
 					argsSent[1] = anc.getUser();
 					response = new Message(Message.MessageType.REQUEST_IP_OK, argsSent);
+					Logs.log("Request IP for " + addr + " with " + name + "-> " + argsSent[1] + "@" + argsSent[0]);
 				}
 			}
 		}
 		if(response == null) {
 			response = new Message(Message.MessageType.REQUEST_IP_KO);
+			Logs.warning("Failed requesting IP for " + addr + " with " + name);
 		}
-		write(m);
+		write(response);
 	}
 
 	private void handler(Message m) {
@@ -321,8 +339,7 @@ public class Handler extends Thread {
 				requestIp(m);
 				break;
 			default:
-				Logs.warning("Unknown header for " + addr + " -> skipping\n" + m);
-				unknown();
+				unknown(m);
 				break;
 		}
 	}

@@ -44,12 +44,12 @@ public class Index {
 			return false;
 		String token = buildToken(user);
 		users.put(user, token);
-		cache.put(ip, user);
+		cache.put(user, ip);
 		return true;
 	}
 
-	public synchronized void addIp(String user, String ip) {
-		cache.put(ip, user);
+	public synchronized void updateIp(String user, String ip) {
+		cache.put(user, ip);
 	}
 
 	public synchronized String initNewToken(String user) {
@@ -59,14 +59,7 @@ public class Index {
 	}
 
 	public synchronized void removeUser(String user) {
-		Enumeration<String> cacheKeys = cache.keys();
-		while (cacheKeys.hasMoreElements()) {
-			String ip = cacheKeys.nextElement();
-			if (cache.get(ip).equals(user)) {
-				cache.remove(ip);
-				return;
-			}
-		}
+		cache.remove(user);
 	}
 
 	public synchronized void ereaseUser(String user) {
@@ -78,16 +71,16 @@ public class Index {
 		return users.get(user);
 	}
 
-	public synchronized String getUserFromIp(String ip) {
-		return cache.get(ip);
+	public synchronized String getIpFromUser(String user) {
+		return cache.get(user);
 	}
 
-	public synchronized String getIpFromUser(String user) {
-		Enumeration<String> ipKeys = cache.keys();
-		while (ipKeys.hasMoreElements()) {
-			String ip = ipKeys.nextElement();
-			if (cache.get(ip).equals(user)) {
-				return ip;
+	public synchronized String getUserFromIp(String ip) {
+		Enumeration<String> userKeys = cache.keys();
+		while (userKeys.hasMoreElements()) {
+			String user = userKeys.nextElement();
+			if (cache.get(user).equals(ip)) {
+				return user;
 			}
 		}
 		return null;
