@@ -20,7 +20,7 @@ public class StorageAnnonce {
 
 	}
 
-	public static  synchronized StorageAnnonce build() {
+	public static  synchronized StorageAnnonce getStore() {
 		if(singleton == null) {
 			singleton = new StorageAnnonce();
 		}
@@ -93,6 +93,7 @@ public class StorageAnnonce {
 		int i = 0;
 		for(Domaine.DomaineType domaine : domaines) {
 			args[i] = domaine.toString();
+			i++;
 		}
 		return args;
 	}
@@ -107,7 +108,7 @@ public class StorageAnnonce {
 					length++;
 				}
 			}
-		}
+		} 
 		String[] args = new String[length*5];
 		for(int i = 0 ; i < args.length ; i=i+5) {
 			String[] argsAnc = userAnc.pop().toStringArgs();
