@@ -2,12 +2,13 @@
  * Main class
  */
 package client;
+import common.Logs;
+
 import java.io.IOException;
 
 public class Client {
 	public static void main(String[] args) throws IOException {
 		String userName = "Maitre Simonard";
-
 		client.GDTService GDTService = new GDTService();
 		GDTService.run();
 

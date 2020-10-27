@@ -3,6 +3,7 @@
  * GDTService
  */
 package client;
+import common.Logs;
 import common.Message;
 
 import java.io.BufferedReader;
@@ -84,7 +85,9 @@ public class GDTService implements Runnable {
       out =
               new PrintWriter(socket.getOutputStream(),true);
     } catch (IOException e) {
-      System.out.println(e.getMessage());
+      Logs.error("GDTService -> "+e.getMessage());
+      System.exit(-1);
+
     }
   }
 }
