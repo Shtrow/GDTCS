@@ -20,6 +20,7 @@ import common.Domaine;
 import common.Annonce;
 
 public class Handler extends Thread {
+	private final static int TIMEOUT = 43_200_000; // 12h
 	private Socket s = null;
 	private BufferedReader in = null;
 	private PrintWriter out = null;
@@ -48,6 +49,7 @@ public class Handler extends Thread {
 		try {
 			this.in = new BufferedReader(new InputStreamReader(s.getInputStream()));
 			this.out = new PrintWriter(s.getOutputStream());
+			this.s.setSoTimeout(TIMEOUT);
 		} catch (IOException e) {
 			Logs.error("Can't set input and output flux for -> exit the thread for " + addr);
 			wantAnExit = true;
@@ -91,7 +93,8 @@ public class Handler extends Thread {
 			wantAnExit = true;
 			return null;
 		} catch (IOException e) {
-			Logs.warning("An IOException occured on " + addr + " -> skipping");
+			Logs.warning("Socket timeout for " + addr + " -> closing connection");
+			wantAnExit = true;
 			return null;
 		}
 	}
@@ -199,7 +202,7 @@ public class Handler extends Thread {
 		Message response = null;
 		if(args != null && args.length > 0) {
 			Annonce anc = store.find(args[0]);
-			if(anc != null) {
+			if(anc != null && anc.getUser().equals(name)) {
 				if(anc.updateWithArgs(args)) {
 					String[] argSent = { anc.getId() };
 					response = new Message(Message.MessageType.MAJ_ANC_OK, argSent);
@@ -220,7 +223,7 @@ public class Handler extends Thread {
 		Message response = null;
 		if(args != null && args.length == 1) {
 			Annonce anc = store.find(args[0]);
-			if(anc != null) {
+			if(anc != null && anc.getUser().equals(name)) {
 				if(store.deleteAnnonce(anc)) {
 					String[] argSent = { anc.getId() };
 					response = new Message(Message.MessageType.DELETE_ANC_OK);
@@ -229,7 +232,7 @@ public class Handler extends Thread {
 			}
 		}
 		if(response == null) {
-			m = new Message(Message.MessageType.DELETE_ANC_KO);
+			response = new Message(Message.MessageType.DELETE_ANC_KO);
 			Logs.warning("Failed deleting anc for " + addr + " with " + name);
 		}
 		write(response);

@@ -60,10 +60,16 @@ public class StorageAnnonce {
 	}
 
 	public synchronized boolean deleteAnnonce(Annonce anc) {
-		if(storage.containsKey(anc.getDomaine())) {
-			storage.get(anc.getDomaine()).remove(anc.getId());
+		Domaine.DomaineType d = null;
+		try {
+			d = Domaine.fromString(anc.getDomaine());
+		} catch(IllegalArgumentException e) {
+			return false;
 		}
-		return false;
+		if(storage.containsKey(d)) {
+			storage.get(d).remove(anc.getId());
+		}
+		return true;
 	}
 
 	public synchronized String[] getAncFromDomaine(Domaine.DomaineType d) {
