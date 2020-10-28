@@ -15,8 +15,12 @@ import java.net.SocketException;
 import common.Index;
 import common.Logs;
 import common.Message;
+import common.StorageAnnonce;
+import common.Domaine;
+import common.Annonce;
 
 public class Handler extends Thread {
+	private final static int TIMEOUT = 43_200_000; // 12h
 	private Socket s = null;
 	private BufferedReader in = null;
 	private PrintWriter out = null;
@@ -25,13 +29,15 @@ public class Handler extends Thread {
 	private String addr = null;
 	private String name = null;
 	private Index index = null;
+	private StorageAnnonce store = null;
 
-	public Handler(Index index, Socket s) {
+	public Handler(Socket s) {
 		if (s != null) {
 			this.s = s;
 			this.addr = s.getInetAddress().toString();
 			setInAndOut();
-			this.index = index;
+			this.index = Index.getIndex();
+			this.store = StorageAnnonce.getStore();
 			Logs.log("Socket bind to a new thread -> manage the new connection for " + addr);
 		} else {
 			Logs.error("Socket s is null -> exit the Thread for " + addr);
@@ -43,10 +49,20 @@ public class Handler extends Thread {
 		try {
 			this.in = new BufferedReader(new InputStreamReader(s.getInputStream()));
 			this.out = new PrintWriter(s.getOutputStream());
+			this.s.setSoTimeout(TIMEOUT);
 		} catch (IOException e) {
 			Logs.error("Can't set input and output flux for -> exit the thread for " + addr);
 			wantAnExit = true;
 		}
+	}
+
+	private boolean notConnected() {
+		if(name == null) {
+			Message m = new Message(Message.MessageType.NOT_CONNECTED);
+			write(m);
+			Logs.warning("Access without connection from " + addr);
+		}
+		return name == null;
 	}
 
 	private void write(Message m) {
@@ -77,12 +93,14 @@ public class Handler extends Thread {
 			wantAnExit = true;
 			return null;
 		} catch (IOException e) {
-			Logs.warning("An IOException occured on " + addr + " -> skipping");
+			Logs.warning("Socket timeout for " + addr + " -> closing connection");
+			wantAnExit = true;
 			return null;
 		}
 	}
 
 	private void disconnect() {
+		if(notConnected()) return;
 		if (s != null) {
 			try {
 				if(name != null) {
@@ -130,13 +148,14 @@ public class Handler extends Thread {
 				if(index.isValidToken(argSend[0])) {
 					name = index.getUserFromToken(argSend[0]);
 					if (name == null) { send = false; }
-					index.addIp(addr, name);
+					index.updateIp(addr, name);
 				} else { send = false; }
 			} else { // ------------------------------------ User
 				name = args[0];
 				if(index.isValidUser(name)) {
 					argSend[0] = index.getToken(name);
 					if(argSend[0] == null) { argSend[0] = index.initNewToken(name); }
+					index.updateIp(addr, name);
 				} else {
 					newUser = true;
 					if(index.addUser(name, addr)) {
@@ -150,6 +169,148 @@ public class Handler extends Thread {
 		}
 	}
 
+	private void unknown(Message m) {
+		Message unknown = new Message(Message.MessageType.UNKNOWN_REQUEST);
+		write(unknown);
+		Logs.warning("Unknown header for " + addr + " -> skipping\n" + m);
+	}
+
+	private void postAnc(Message m) {
+		if(notConnected()) return;
+		String[] args = m.getArgs();
+		Message response = null;
+		if(args != null && args.length == 4) {
+			try {
+				Annonce anc = new Annonce(name, args[0], args[1], args[2], args[3]);
+				if(store.addAnnonce(anc)) {
+					String[] argSent = { anc.getId() };
+					response = new Message(Message.MessageType.POST_ANC_OK, argSent);
+					Logs.log("Create a new anc for " + addr + " with " + name);
+				}
+			} catch(IllegalArgumentException e) {}
+		}
+		if(response == null) {
+			Logs.warning("Failed posting new anc from " + addr + " with " + name);
+			response = new Message(Message.MessageType.POST_ANC_KO);
+		}
+		write(response);
+	}
+
+	private void majAnc(Message m) {
+		if(notConnected()) return;
+		String[] args = m.getArgs();
+		Message response = null;
+		if(args != null && args.length > 0) {
+			Annonce anc = store.find(args[0]);
+			if(anc != null && anc.getUser().equals(name)) {
+				if(anc.updateWithArgs(args)) {
+					String[] argSent = { anc.getId() };
+					response = new Message(Message.MessageType.MAJ_ANC_OK, argSent);
+					Logs.log("Update anc for " + addr + " with " + name);
+				}
+			}
+		}
+		if(response == null) {
+			response = new Message(Message.MessageType.MAJ_ANC_KO);
+			Logs.warning("Failed updating anc for " + addr + " with " + name);
+		}
+		write(response);
+	}
+
+	private void deleteAnc(Message m) {
+		if(notConnected()) return;
+		String[] args = m.getArgs();
+		Message response = null;
+		if(args != null && args.length == 1) {
+			Annonce anc = store.find(args[0]);
+			if(anc != null && anc.getUser().equals(name)) {
+				if(store.deleteAnnonce(anc)) {
+					String[] argSent = { anc.getId() };
+					response = new Message(Message.MessageType.DELETE_ANC_OK);
+					Logs.log("Delete anc for " + addr + " with " + name);
+				}
+			}
+		}
+		if(response == null) {
+			response = new Message(Message.MessageType.DELETE_ANC_KO);
+			Logs.warning("Failed deleting anc for " + addr + " with " + name);
+		}
+		write(response);
+	}
+
+	private void requestDomain() {
+		if(notConnected()) return;
+		String[] argsSent = store.getDomaines();
+		Message response = null;
+		if(argsSent.length > 0) {
+			response = new Message(Message.MessageType.SEND_DOMAINE_OK, argsSent);
+			Logs.log("Send domains to " + addr + " with " + name);
+		} else {
+			response = new Message(Message.MessageType.SEND_DOMAIN_KO);
+			Logs.warning("Failed sending domains to " + addr + " with " + name);
+		}
+		write(response);
+	}
+
+	private void requestAnc(Message m) {
+		if(notConnected()) return;
+		String[] args = m.getArgs();
+		Message response = null;
+		if(args != null && args.length == 1) {
+			try {
+				Domaine.DomaineType d = Domaine.fromString(args[0]);
+				String[] argsSent = store.getAncFromDomaine(d);
+				if(argsSent != null && argsSent.length > 0) {
+					response = new Message(Message.MessageType.SEND_ANC_OK, argsSent);
+					Logs.log("Request anc for " + addr + " with " + name);
+				}
+			} catch(IllegalArgumentException e) {}
+		}
+		if(response == null) {
+			response = new Message(Message.MessageType.SEND_ANC_KO);
+			Logs.warning("Failed requesting anc for " + addr + " with " + name);
+		}
+		write(response);
+	}
+
+	private void requestOwnAnc() {
+		if(notConnected()) return;
+		String[] argsSent = store.getUserAnc(name);
+		Message response = null;
+		if(argsSent != null) {
+			response = new Message(Message.MessageType.SEND_OWN_ANC_OK, argsSent);
+			Logs.log("Request own anc for " + addr + " with " + name);
+		} else {
+			response = new Message(Message.MessageType.SEND_OWN_ANC_KO);
+			Logs.warning("Failed requesting own anc for " + addr + " with " + name);
+		}
+		write(response);
+	}
+
+	private void requestIp(Message m) {
+		if(notConnected()) return;
+		String[] args = m.getArgs();
+		Message response = null;
+		if(args != null && args.length == 1) {
+			Annonce anc = store.find(args[0]);
+			if(anc != null) {
+				String ip = index.getIpFromUser(anc.getUser());
+				if(ip != null) {
+					String[] argsSent = new String[2];
+					argsSent[0] = ip.substring(1);
+					argsSent[1] = anc.getUser();
+					response = new Message(Message.MessageType.REQUEST_IP_OK, argsSent);
+					Logs.log("Request IP for " + addr + " with " + name + "-> " + argsSent[1] + "@" + argsSent[0]);
+				}
+			}
+		}
+		if(response == null) {
+			response = new Message(Message.MessageType.REQUEST_IP_KO);
+			Logs.warning("Failed requesting IP for " + addr + " with " + name);
+		}
+		write(response);
+	}
+
 	private void handler(Message m) {
 		switch (m.getType()) {
 			case CONNECT:
@@ -159,8 +320,29 @@ public class Handler extends Thread {
 				wantAnExit = true;
 				Logs.log("Ask for deconnection for " + addr);
 				break;
+			case POST_ANC:
+				postAnc(m);
+				break;
+			case MAJ_ANC:
+				majAnc(m);
+				break;
+			case DELETE_ANC:
+				deleteAnc(m);
+				break;
+			case REQUEST_DOMAIN:
+				requestDomain();
+				break;
+			case REQUEST_ANC:
+				requestAnc(m);
+				break;
+			case REQUEST_OWN_ANC:
+				requestOwnAnc();
+				break;
+			case REQUEST_IP:
+				requestIp(m);
+				break;
 			default:
-				Logs.warning("Unknown header for " + addr + " -> skipping\n" + m);
+				unknown(m);
 				break;
 		}
 	}

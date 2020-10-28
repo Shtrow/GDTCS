@@ -44,12 +44,12 @@ public class Index {
 			return false;
 		String token = buildToken(user);
 		users.put(user, token);
-		cache.put(ip, user);
+		cache.put(user, ip);
 		return true;
 	}
 
-	public synchronized void addIp(String user, String ip) {
-		cache.put(ip, user);
+	public synchronized void updateIp(String user, String ip) {
+		cache.put(user, ip);
 	}
 
 	public synchronized String initNewToken(String user) {
@@ -59,14 +59,7 @@ public class Index {
 	}
 
 	public synchronized void removeUser(String user) {
-		Enumeration<String> cacheKeys = cache.keys();
-		while (cacheKeys.hasMoreElements()) {
-			String ip = cacheKeys.nextElement();
-			if (cache.get(ip).equals(user)) {
-				cache.remove(ip);
-				return;
-			}
-		}
+		cache.remove(user);
 	}
 
 	public synchronized void ereaseUser(String user) {
@@ -78,11 +71,23 @@ public class Index {
 		return users.get(user);
 	}
 
-	public synchronized String getUserFromIp(String ip) {
-		return cache.get(ip);
+	public synchronized String getIpFromUser(String user) {
+		return cache.get(user);
 	}
 
-	public String getUserFromToken(String token) {
+	public synchronized String getUserFromIp(String ip) {
+		Enumeration<String> userKeys = cache.keys();
+		while (userKeys.hasMoreElements()) {
+			String user = userKeys.nextElement();
+			if (cache.get(user).equals(ip)) {
+				return user;
+			}
+		}
+		return null;
+
+	}
+
+	public synchronized String getUserFromToken(String token) {
 		Enumeration<String> userKeys = users.keys();
 		while (userKeys.hasMoreElements()) {
 			String user = userKeys.nextElement();
@@ -93,7 +98,7 @@ public class Index {
 		return null;
 	}
 
-	public boolean isValidToken(String token) {
+	public synchronized boolean isValidToken(String token) {
 		Enumeration<String> userKeys = users.keys();
 		while (userKeys.hasMoreElements()) {
 			String currentUser = userKeys.nextElement();
@@ -104,7 +109,7 @@ public class Index {
 		return false;
 	}
 
-	public boolean isValidUser(String user) {
+	public synchronized boolean isValidUser(String user) {
 		return users.containsKey(user);
 	}
 }

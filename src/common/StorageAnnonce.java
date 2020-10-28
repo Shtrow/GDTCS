@@ -20,7 +20,7 @@ public class StorageAnnonce {
 
 	}
 
-	public static  synchronized StorageAnnonce build() {
+	public static  synchronized StorageAnnonce getStore() {
 		if(singleton == null) {
 			singleton = new StorageAnnonce();
 		}
@@ -45,7 +45,13 @@ public class StorageAnnonce {
 		return null;
 	}
 
-	public synchronized boolean addAnnonce(Domaine.DomaineType d, Annonce anc) {
+	public synchronized boolean addAnnonce(Annonce anc) {
+		Domaine.DomaineType d = null;
+		try {
+			d = Domaine.fromString(anc.getDomaine());
+		} catch(IllegalArgumentException e) {
+			return false;
+		}
 		if(storage.containsKey(d)) {
 			storage.get(d).put(anc.getId(), anc);
 			return true;
@@ -54,10 +60,37 @@ public class StorageAnnonce {
 	}
 
 	public synchronized boolean deleteAnnonce(Annonce anc) {
-		if(storage.containsKey(anc.getDomaine())) {
-			storage.get(anc.getDomaine()).remove(anc.getId());
+		Domaine.DomaineType d = null;
+		try {
+			d = Domaine.fromString(anc.getDomaine());
+		} catch(IllegalArgumentException e) {
+			return false;
 		}
-		return false;
+		if(storage.containsKey(d)) {
+			storage.get(d).remove(anc.getId());
+		}
+		return true;
+	}
+
+	public synchronized String[] getAncFromDomaine(Domaine.DomaineType d) {
+		Hashtable<String, Annonce> ancs = storage.get(d);
+		LinkedList<Annonce> res = new LinkedList<Annonce>();
+		int length = 0;
+		if(ancs == null) return null;
+		for(Annonce anc : ancs.values()) {
+			res.push(anc);
+			length++;
+		}
+		String[] args = new String[length*5];
+		for(int i = 0 ; i < args.length ; i=i+5) {
+			String[] argsAnc = res.pop().toStringArgs();
+			args[i] = argsAnc[0];
+			args[i+1] = argsAnc[1];
+			args[i+2] = argsAnc[2];
+			args[i+3] = argsAnc[3];
+			args[i+4] = argsAnc[4];
+		}
+		return args;
 	}
 
 	public synchronized String[] getDomaines() {
@@ -66,6 +99,7 @@ public class StorageAnnonce {
 		int i = 0;
 		for(Domaine.DomaineType domaine : domaines) {
 			args[i] = domaine.toString();
+			i++;
 		}
 		return args;
 	}
@@ -80,9 +114,9 @@ public class StorageAnnonce {
 					length++;
 				}
 			}
-		}
+		} 
 		String[] args = new String[length*5];
-		for(int i = 0 ; i < length ; i=i+5) {
+		for(int i = 0 ; i < args.length ; i=i+5) {
 			String[] argsAnc = userAnc.pop().toStringArgs();
 			args[i] = argsAnc[0];
 			args[i+1] = argsAnc[1];
