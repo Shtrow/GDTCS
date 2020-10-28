@@ -3,7 +3,7 @@ package common;
 public class Domaine {
 
 	 public static DomaineType fromString(String domaine) {
-			switch(domaine) {
+			switch(domaine.toUpperCase()) {
 				 case "AUTRE":
 						return DomaineType.AUTRE;
 				 case "LOGICIEL":
