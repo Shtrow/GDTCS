@@ -9,7 +9,9 @@ import java.io.IOException;
 public class Client {
 	public static void main(String[] args) throws IOException {
 		String userName = "Maitre Simonard";
-		client.GDTService GDTService = new GDTService();
+		client.GDTService GDTService =
+				new GDTService("192.168.43.62",1027,5);
+//			new GDTService();
 		GDTService.run();
 
 		DataProvider dataProvider = new DataProvider(GDTService);
