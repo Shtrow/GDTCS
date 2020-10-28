@@ -25,9 +25,9 @@ public class DataProvider {
                                    Message.MessageType error,
                                    Consumer<Message> success,
                                    Consumer<Message> failure) {
-    if (message == null) {Logs.error("Server does not respond"); return;}
+    if (message == null) {Logs.log("TIMEOUT : Server does not respond \n Disconnection..."); System.exit(1);}
     if(message.getType() == expected) success.accept(message);
-    else if(message.getType() == expected) failure.accept(message);
+    else if(message.getType() == error  ) failure.accept(message);
     //TODO : Add NO_CONNECTED and UNKNOWN_REQUEST cases
     else {Logs.error("Communication error \nServer response :"+ message.toNetFormat());}
     // Fill the Logger
@@ -75,7 +75,7 @@ public class DataProvider {
     Message message = new Message(Message.MessageType.REQUEST_ANC, new String[]{domain});
     Consumer<Message> successBehavior = answer -> {
       //TODO: DISPLAY CORRECTLY
-      Logs.log(answer.toNetFormat());
+      Logs.log("OK");
     };
     Consumer<Message> failBehaviour = answer -> {Logs.error("Domain not found");};
     service.askFor(message).
@@ -87,10 +87,6 @@ public class DataProvider {
 
   }
 
-  public String[][] getDomain(){
-    return null;
-  }
-
   public void getMyAn(){
     Message message = new Message(Message.MessageType.REQUEST_OWN_ANC);
     var answer = service.askFor(message);
@@ -100,7 +96,7 @@ public class DataProvider {
     };
     Consumer<Message> failBehavior = m -> Logs.error("Post not found");
     answer.thenAccept(
-            m -> basicRequest(m, Message.MessageType.SEND_ANC_OK, Message.MessageType.SEND_ANC_KO,successBehavior,failBehavior)
+            m -> basicRequest(m, Message.MessageType.SEND_OWN_ANC_OK, Message.MessageType.SEND_OWN_ANC_KO,successBehavior,failBehavior)
     );
   }
 
@@ -127,10 +123,28 @@ public class DataProvider {
   public void deleteAnc(String ancId){
     Message message = new Message(Message.MessageType.DELETE_ANC, new String[]{ancId});
     var answer = service.askFor(message);
-    Consumer<Message> successBehavior = m -> System.out.println("Annonce succesfuly deleted");
+    Consumer<Message> successBehavior = m -> System.out.println("Post succesfuly deleted");
     Consumer<Message> failBehavior = m -> System.out.println("The server refused your request");
     answer.thenAcceptAsync(
             m -> basicRequest(m, Message.MessageType.DELETE_ANC_OK, Message.MessageType.DELETE_ANC_KO,successBehavior,failBehavior)
+    );
+  }
+  public void getDomains(){
+    Message message = new Message(Message.MessageType.REQUEST_DOMAIN);
+    var answer = service.askFor(message);
+    Consumer<Message> successBehavior = m -> System.out.println("Here your domain :" );
+    Consumer<Message> failBehavior = m -> System.out.println("Oupsi");
+    answer.thenAcceptAsync(
+            m -> basicRequest(m, Message.MessageType.SEND_DOMAINE_OK, Message.MessageType.SEND_DOMAINE_OK,successBehavior,failBehavior)
+    );
+  }
+  public void requestIP(String postID){
+    Message message = new Message(Message.MessageType.REQUEST_IP, new String[]{postID});
+    var answer = service.askFor(message);
+    Consumer<Message> successBehavior = m -> System.out.println("IP = : "+m.getArgs()[0]);
+    Consumer<Message> failBehavior = m -> System.out.println("The server refused your request");
+    answer.thenAcceptAsync(
+            m -> basicRequest(m, Message.MessageType.REQUEST_IP_OK, Message.MessageType.REQUEST_IP_KO,successBehavior,failBehavior)
     );
   }
 

@@ -5,7 +5,6 @@
 package client;
 import java.util.Arrays;
 import java.util.Scanner;
-import java.util.function.Consumer;
 
 public class Controller implements Runnable {
 
@@ -65,6 +64,14 @@ public class Controller implements Runnable {
         return dataProvider::disconnect;
       case "echo":
         return () -> System.out.println(command);
+      case "domains" :
+        return dataProvider::getDomains;
+      case "prodby":
+        return () ->dataProvider.getProductByDomain(tokens[1]);
+      case "reqip" :
+        return () -> dataProvider.requestIP(tokens[1]);
+      case "" :
+        return () -> {};
       default:
         return () -> System.out.println("Command not found");
     }
