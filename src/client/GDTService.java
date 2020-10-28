@@ -50,7 +50,7 @@ public class GDTService implements Runnable {
         message += (packet + "\n");
       }
       while(packet !=null && !packet.equals("."));
-      System.out.println("received :\n"+message);
+      Logs.log("received :\n"+message);
       return message;
     }
 
@@ -60,19 +60,20 @@ public class GDTService implements Runnable {
     }
     public CompletableFuture<Message> askFor(Message request){
       return CompletableFuture.supplyAsync( () ->  {
-                System.out.println("sending :\n"+request.toNetFormat());
+                Logs.log("sending :\n"+request.toNetFormat());
 
                 out.print(request.toNetFormat());
         out.flush();
         try {
           return Message.stringToMessage(readMessage());
-        } catch (IOException e) {
-          e.printStackTrace();
+        } catch (Exception e) {
+          Logs.error("Server interruption");
+          System.exit(1);
         }
         return null;
       }
 
-      ).orTimeout(5,TimeUnit.SECONDS);
+      ).completeOnTimeout(null, timeOut,TimeUnit.SECONDS);
     }
   @Override
   public void run() {
