@@ -30,7 +30,7 @@ public class Controller implements Runnable {
     String[] tokens = command.split("\\s+");
     if (tokens.length<1) return () -> {};
     switch (tokens[0]){
-      case "mpost":
+      case "own":
         return dataProvider::getMyAn;
       case "connect":
         if(tokens.length <2){
@@ -60,22 +60,40 @@ public class Controller implements Runnable {
         else {
           return (() -> dataProvider.updateAnc(Arrays.copyOfRange(tokens,1,tokens.length)));
         }
-      case "disconnect":
+      case "exit":
         return dataProvider::disconnect;
       case "echo":
         return () -> System.out.println(command);
       case "domains" :
         return dataProvider::getDomains;
-      case "prodby":
+      case "ancs":
         return () ->dataProvider.getProductByDomain(tokens[1]);
-      case "reqip" :
+      case "ip" :
         return () -> dataProvider.requestIP(tokens[1]);
       case "" :
         return () -> {};
+      case "help" :
+        return this::displayHelp;
       default:
         return () -> System.out.println("Command not found");
     }
 
 
+  }
+
+  private void displayHelp(){
+    int indentSize = 20;
+    String s = "" +
+            "- %" + -indentSize + "s Reconnect to the server\n" +
+            "- %" + -indentSize + "s Quite GTDT Client\n" +
+            "- %" + -indentSize + "s Display available domains\n" +
+            "- %" + -indentSize + "s Display all \"annonces\" from DOMAIN\n" +
+            "- %" + -indentSize + "s Request your \"annonces\"\n" +
+            "- %" + -indentSize + "s Post an \"annonces\" (enter interactive mode)\n" +
+            "- %" + -indentSize + "s Update an \"annonces\"(enter interactive mode)\n" +
+            "- %" + -indentSize + "s Request the ip of the \"annonces\" owner\n"+
+            "- %" + -indentSize + "s Delete an \"annonces\"\n";
+            System.out.printf(s,
+            "connect","exit","domains","ancs [DOMAIN]","own","post","update [ANC ID]","ip [ANC ID]","delete [ANC ID]");
   }
 }
