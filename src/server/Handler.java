@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 import common.Index;
 import common.Logs;
@@ -92,15 +92,17 @@ public class Handler extends Thread {
 			Logs.warning("Write on a close channel for " + addr + " -> drop channel");
 			wantAnExit = true;
 			return null;
-		} catch (IOException e) {
+		} catch(SocketTimeoutException e) {
 			Logs.warning("Socket timeout for " + addr + " -> closing connection");
 			wantAnExit = true;
+			return null;
+		} catch (IOException e) {
+			Logs.warning("IOException for " + addr + " -> skipping");
 			return null;
 		}
 	}
 
 	private void disconnect() {
-		if(notConnected()) return;
 		if (s != null) {
 			try {
 				if(name != null) {
@@ -350,6 +352,7 @@ public class Handler extends Thread {
 	public void run() {
 		boolean run = true;
 		while (run && !wantAnExit) {
+			System.out.println("LOOOOP");
 			Message m = read();
 			if (m != null) {
 				handler(m);

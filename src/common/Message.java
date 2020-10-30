@@ -106,7 +106,7 @@ public class Message {
       case "REQUEST_DOMAIN":
         res = MessageType.REQUEST_DOMAIN;
         break;
-      case "SEND_DOMAINE_OK":
+      case "SEND_DOMAIN_OK":
         res = MessageType.SEND_DOMAINE_OK;
         break;
       case "SEND_DOMAIN_KO":
@@ -208,7 +208,7 @@ public class Message {
 
     REQUEST_DOMAIN("REQUEST_DOMAIN"),
 
-    SEND_DOMAINE_OK("SEND_DOMAINE_OK"),
+    SEND_DOMAINE_OK("SEND_DOMAIN_OK"),
 
     SEND_DOMAIN_KO("SEND_DOMAIN_KO"),
 

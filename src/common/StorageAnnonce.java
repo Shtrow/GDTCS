@@ -20,7 +20,7 @@ public class StorageAnnonce {
 
 	}
 
-	public static  synchronized StorageAnnonce getStore() {
+	public static synchronized StorageAnnonce getStore() {
 		if(singleton == null) {
 			singleton = new StorageAnnonce();
 		}
