@@ -2,37 +2,77 @@ package common;
 
 import java.util.Arrays;
 
+/**
+ * Class to manage Message sent
+ *
+ * @author Marais-Viau
+ */
 public class Message {
   private MessageType type;
   private String[] args;
 
-  // Constructors
+  /**
+	 * Constructor
+	 *
+	 * @param type the type of the message
+	 * @param args arguments of the message
+	 */
   public Message(MessageType type, String[] args) {
     this.type = type;
     this.args = args;
   }
 
+	/**
+	 * Constructor
+	 *
+	 * @param type the type of the message
+	 */
   public Message(MessageType type) {
     this.type = type;
     this.args = null;
   }
 
+	/**
+	 * Argument getter
+	 *
+	 * @return the arguments of the message
+	 */
   public String[] getArgs() {
     return args;
   }
 
+	/**
+	 * Type getter
+	 *
+	 * @return a message type of the message
+	 */
   public MessageType getType() {
     return type;
   }
 
+	/**
+	 * Argument setter
+	 *
+	 * @param args the arguments
+	 */
   public void setArgs(String[] args) {
     this.args = args;
   }
 
+	/**
+	 * Type setter
+	 *
+	 * @param type the type of the message
+	 */
   public void setType(MessageType type) {
     this.type = type;
   }
 
+	/**
+	 * Transforms the message to sending format
+	 *
+	 * @return a String well format for tcp
+	 */
   public String toNetFormat() {
     String res = type.toString();
     res += "\n";
@@ -45,8 +85,14 @@ public class Message {
     return res;
   }
 
+	/**
+	 * Convert a String to a Message
+	 *
+	 * @param sMessage the message as a String
+	 * @return a Message
+	 */
   public static Message stringToMessage(String sMessage) {
-    String[] tokens = sMessage.substring(0, sMessage.length()).split("\n");
+    String[] tokens = sMessage.split("\n"); // Remove the dot at the end
     MessageType type = stringToMessageType(tokens[0]);
     String[] args = (tokens.length < 2) ? null : Arrays.copyOfRange(tokens, 1, tokens.length);
     return new Message(type, args);
@@ -172,6 +218,9 @@ public class Message {
     return res;
   }
 
+	/**
+	 * An enumeration that represents the list of available messages
+	 */
   public enum MessageType {
 
     CONNECT("CONNECT"),

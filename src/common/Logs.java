@@ -1,26 +1,39 @@
+package common;
+
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Log system
  *
  * @author Marais-Viau
  */
-
-package common;
-
-import java.util.logging.Logger;
-import java.util.logging.Level;
-
 public class Logs {
 	private static Logger logger = Logger.getLogger("logger");
 
+	/**
+	 * Display a standard message
+	 *
+	 * @param message the message to display
+	 */
 	public static void log(String message) {
 		logger.log(Level.INFO, message);
 	}
 
+	/**
+	 * Display a warning message
+	 *
+	 * @param message the message to display
+	 */
 	public static void warning(String message) {
 		logger.log(Level.WARNING, message);
 	}
 
+	/**
+	 * Display an error message
+	 *
+	 * @param message the message to display
+	 */
 	public static void error(String message) {
 		logger.log(Level.SEVERE, message);
 	}

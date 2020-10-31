@@ -1,6 +1,10 @@
-
 package common;
 
+/**
+ * Class to represent Anounces
+ *
+ * @author Marais - Viau
+ */
 public class Annonce {
 	private String idAnnonce;
 	private String domaine;
@@ -9,8 +13,19 @@ public class Annonce {
 	private String descriptif;
 	private String prix;
 
+	/**
+	 * Constructor
+	 *
+	 * @param user
+	 * @param domaine
+	 * @param titre
+	 * @param descriptif
+	 * @param prix
+	 *
+	 * @throws IllegalArgumentException if a field is null or if the price isn't correct
+	 */
 	public Annonce(String user, String domaine, String titre, String descriptif, String prix) {
-		if(user == null || domaine == null || titre == null || descriptif == null || prix == null) {
+		if(user == null || domaine == null || titre == null || descriptif == null || prix == null || isWellFormat(prix)) {
 			throw new IllegalArgumentException("Annonce must be full");
 		}
 		this.domaine = domaine;
@@ -21,54 +36,117 @@ public class Annonce {
 		this.idAnnonce = user + this.hashCode();
 	}
 
+	private boolean isWellFormat(String prix) {
+		try {
+			Float.parseFloat(prix);
+		} catch(IllegalArgumentException e) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * User getter
+	 *
+	 * @return the user
+	 */
 	public String getUser() {
 		return this.user;
 	}
 
+	/**
+	 * Domain getter
+	 *
+	 * @return the domain
+	 */
 	public String getDomaine() {
 		return this.domaine;
 	}
 
+	/**
+	 * Domain setter
+	 * @param domaine the domain, not changed in case of null
+	 */
 	public void setDomaine(String domaine) {
 		if(domaine != null) {
 			this.domaine = domaine;
 		}
 	}
 
+	/**
+	 * Title getter
+	 *
+	 * @return the title
+	 */
 	public String getTitre() {
 		return this.titre;
 	}
 
+	/**
+	 * Title setter
+	 *
+	 * @param titre the title of the anounce, not changed if it's null
+	 */
 	public void setTitre(String titre) {
 		if(titre != null) {
 			this.titre = titre;
 		}
 	}
 
+	/**
+	 * Description getter
+	 *
+	 * @return the description
+	 */
 	public String getDescriptif() {
 		return this.descriptif;
 	}
 
+	/**
+	 * Description setter
+	 *
+	 * @param descriptif the description of the anounce, not changed if it's null
+	 */
 	public void setDescriptif(String descriptif) {
 		if (descriptif != null) {
 			this.descriptif = descriptif;
 		}
 	}
 
+	/**
+	 * Price getter
+	 *
+	 * @return a String that represents the price
+	 */
 	public String getPrix() {
 		return this.prix;
 	}
 
+	/**
+	 * Price setter
+	 *
+	 * @param prix the price, not changed if null or not well format
+	 */
 	public void setPrix(String prix) {
-		if(prix != null) {
+		if(prix != null && isWellFormat(prix)) {
 			this.prix = prix;
 		}
 	}
 
+	/**
+	 * Anounce id getter
+	 *
+	 * @return a String that represents the ID
+	 */
 	public String getId() {
 		return this.idAnnonce;
 	}
 
+	/**
+	 * Convert the anounce into a sendable string args table
+	 *
+	 * @return an array of length five
+	 */
 	public String[] toStringArgs() {
 		String[] args = new String[5];
 		args[0] = getId();
@@ -79,6 +157,13 @@ public class Annonce {
 		return args;
 	}
 
+	/**
+	 * Convert a received args table into an Annonce
+	 *
+	 * @param user the user that sends the anounce
+	 * @param args the description of the anounce
+	 * @return an Annonce or null in case of error
+	 */
 	public static Annonce fromStringArgs(String user, String []args) {
 		if(args.length != 4) {
 			return null;
@@ -95,6 +180,12 @@ public class Annonce {
 		return (str.equals("null")) ? null : str;
 	}
 
+	/**
+	 * Update an anounce with a received table
+	 *
+	 * @param args the array received
+	 * @return true if the array if well format
+	 */
 	public boolean updateWithArgs(String[] args) {
 		if(args.length != 5) {
 			return false;

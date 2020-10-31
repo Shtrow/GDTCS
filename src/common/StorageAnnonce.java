@@ -8,6 +8,12 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.LinkedList;
 
+/**
+ * Class to represent the storage of informations
+ * This class is a singleton
+ *
+ * @author
+ */
 public class StorageAnnonce {
 	private TreeMap<Domaine.DomaineType, Hashtable<String, Annonce>> storage;
 	private static StorageAnnonce singleton = null;
@@ -20,6 +26,9 @@ public class StorageAnnonce {
 
 	}
 
+	/**
+	 * Return the storage object
+	 */
 	public static synchronized StorageAnnonce getStore() {
 		if(singleton == null) {
 			singleton = new StorageAnnonce();
@@ -27,6 +36,13 @@ public class StorageAnnonce {
 		return singleton;
 	}
 
+	/**
+	 * Find an anounce thanks to the domain
+	 *
+	 * @param domaine the domain
+	 * @param idAnnonce the id of the anounce
+	 * @return an Annonce if it finds it else null
+	 */
 	public synchronized Annonce findWithDomain(String domaine, String idAnnonce) {
 		Domaine.DomaineType d = Domaine.fromString(domaine);
 		if(storage.containsKey(d)) {
@@ -35,6 +51,12 @@ public class StorageAnnonce {
 		return null;
 	}
 
+	/**
+	 * Find an anounce everywhere in the database
+	 *
+	 * @param idAnnonce the id of the anounce
+	 * @return the Annonce if it finds it else null
+	 */
 	public synchronized Annonce find(String idAnnonce) {
 		for(Hashtable<String, Annonce> index : storage.values()) {
 			Annonce anc = index.get(idAnnonce);
@@ -45,6 +67,12 @@ public class StorageAnnonce {
 		return null;
 	}
 
+	/**
+	 * Add an anounce to the store
+	 *
+	 * @param anc the anounce to add
+	 * @return true if ti works else false
+	 */
 	public synchronized boolean addAnnonce(Annonce anc) {
 		Domaine.DomaineType d = null;
 		try {
@@ -59,6 +87,12 @@ public class StorageAnnonce {
 		return false;
 	}
 
+	/**
+	 * Delete an anounce form the store
+	 *
+	 * @param anc the anounce
+	 * @return true if it works else false
+	 */
 	public synchronized boolean deleteAnnonce(Annonce anc) {
 		Domaine.DomaineType d = null;
 		try {
@@ -72,6 +106,12 @@ public class StorageAnnonce {
 		return true;
 	}
 
+	/**
+	 * Retrieve anounces from a domain
+	 *
+	 * @param d the domain type
+	 * @return a String array if it works else null
+	 */
 	public synchronized String[] getAncFromDomaine(Domaine.DomaineType d) {
 		Hashtable<String, Annonce> ancs = storage.get(d);
 		LinkedList<Annonce> res = new LinkedList<Annonce>();
@@ -93,6 +133,11 @@ public class StorageAnnonce {
 		return args;
 	}
 
+	/**
+	 * Get the domain list
+	 *
+	 * @return a String array containing all the domains
+	 */
 	public synchronized String[] getDomaines() {
 		Set<Domaine.DomaineType> domaines = storage.keySet();
 		String[] args = new String[domaines.size()];
@@ -104,6 +149,12 @@ public class StorageAnnonce {
 		return args;
 	}
 
+	/**
+	 * Retrieve user anounce from the store
+	 *
+	 * @param user the username
+	 * @return an array of the anounces
+	 */
 	public synchronized String[] getUserAnc(String user) {
 		LinkedList<Annonce> userAnc = new LinkedList<Annonce>();
 		int length = 0;
