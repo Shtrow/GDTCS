@@ -4,8 +4,10 @@ import common.Annonce;
 import common.Logs;
 import common.Message;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 /**
@@ -16,7 +18,6 @@ public class DataProvider {
   public DataProvider(GDTService service){
     this.service = service;
   }
-  ProductViewer productViewer = new ProductViewer();
   String userName = null;
   String token = null;
 
@@ -74,6 +75,7 @@ public class DataProvider {
   public void getProductByDomain(String domain){
     Message message = new Message(Message.MessageType.REQUEST_ANC, new String[]{domain});
     Consumer<Message> successBehavior = answer -> {
+      ProductViewer.displayProducts(answer.getArgs());
       //TODO: DISPLAY CORRECTLY
       Logs.log("OK");
     };
@@ -91,8 +93,8 @@ public class DataProvider {
     Message message = new Message(Message.MessageType.REQUEST_OWN_ANC);
     var answer = service.askFor(message);
     Consumer<Message> successBehavior = m -> {
-      System.out.println("My posts : \n");
-      productViewer.displayProductList(m.getArgs());
+      System.out.println("My posts :");
+      ProductViewer.displayProducts(m.getArgs());
     };
     Consumer<Message> failBehavior = m -> Logs.error("Post not found");
     answer.thenAccept(
@@ -132,7 +134,10 @@ public class DataProvider {
   public void getDomains(){
     Message message = new Message(Message.MessageType.REQUEST_DOMAIN);
     var answer = service.askFor(message);
-    Consumer<Message> successBehavior = m -> System.out.println("Here your domain :" );
+    Consumer<Message> successBehavior = m -> {
+      System.out.println("Here your domain :");
+      ProductViewer.printDomains(m.getArgs());
+    };
     Consumer<Message> failBehavior = m -> System.out.println("Oupsi");
     answer.thenAcceptAsync(
             m -> basicRequest(m, Message.MessageType.SEND_DOMAINE_OK, Message.MessageType.SEND_DOMAINE_OK,successBehavior,failBehavior)
@@ -146,9 +151,5 @@ public class DataProvider {
     answer.thenAcceptAsync(
             m -> basicRequest(m, Message.MessageType.REQUEST_IP_OK, Message.MessageType.REQUEST_IP_KO,successBehavior,failBehavior)
     );
-  }
-
-  public void talkWith(String peerUserName){
-
   }
 }
