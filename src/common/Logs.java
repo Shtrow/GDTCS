@@ -10,6 +10,7 @@ import java.util.logging.Level;
  */
 public class Logs {
 	private static Logger logger = Logger.getLogger("logger");
+	private static boolean debug = true;
 
 	/**
 	 * Display a standard message
@@ -17,7 +18,9 @@ public class Logs {
 	 * @param message the message to display
 	 */
 	public static void log(String message) {
-		logger.log(Level.INFO, message);
+		if (debug) {
+			logger.log(Level.INFO, message);
+		}
 	}
 
 	/**
@@ -26,7 +29,9 @@ public class Logs {
 	 * @param message the message to display
 	 */
 	public static void warning(String message) {
-		logger.log(Level.WARNING, message);
+		if (debug) {
+			logger.log(Level.WARNING, message);
+		}
 	}
 
 	/**
@@ -35,6 +40,12 @@ public class Logs {
 	 * @param message the message to display
 	 */
 	public static void error(String message) {
-		logger.log(Level.SEVERE, message);
+		if (debug) {
+			logger.log(Level.SEVERE, message);
+		}
+	}
+
+	public static void debugOff() {
+		debug = false;
 	}
 }
