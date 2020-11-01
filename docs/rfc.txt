@@ -6,8 +6,8 @@ Network Working Group                                            B. Viau
 Internet-Draft                                                 E. Marais
 Intended status: Experimental                                    C. Yvon
 Expires: 3 April 2021                                         G. Roumage
-Version 6                                                    L. Bergerat
-Obsolete: draft-5                                               N. Quero
+Version 6.4                                                  L. Bergerat
+Obsolete: draft-6.3                                             N. Quero
                                                   N. Gillaizeau-Simonian
                                                               R. Gauchée
                                                                R. Souadi
@@ -40,6 +40,7 @@ Table des matières
        2.3.7.  Chercher parmi un domaine . . . . . . . . . . . . . .   8
        2.3.8.  Récupérer ses annonces  . . . . . . . . . . . . . . .   9
        2.3.9.  Récupérer l'adresse IP d'un tier connecté . . . . . .   9
+       2.3.10. Message inconnu . . . . . . . . . . . . . . . . . . .   9
    3.  Protocole pair à pair . . . . . . . . . . . . . . . . . . . .  10
      3.1.  Fonctionnement  . . . . . . . . . . . . . . . . . . . . .  10
      3.2.  Connexion . . . . . . . . . . . . . . . . . . . . . . . .  10
@@ -90,6 +91,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
          CONNECT_NEW_USER_OK
          CONNECT_NEW_USER_KO
          CONNECT_KO
+         NOT_CONNECTED
          DISCONNECT
          POST_ANC
          POST_ANC_OK
@@ -101,7 +103,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
          DELETE_ANC_OK
          DELETE_ANC_KO
          REQUEST_DOMAIN
-         SEND_DOMAINE_OK
+         SEND_DOMAIN_OK
          SEND_DOMAIN_KO
          REQUEST_ANC
 
@@ -120,6 +122,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
          REQUEST_IP
          REQUEST_IP_OK
          REQUEST_IP_KO
+         UNKNOWN_REQUEST
          CONNECT_PAIR
          CONNECT_PAIR_OK
          CONNECT_PAIR_REJECTED
@@ -164,7 +167,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
    +--------------------------------+
    |CONNECT                         |
-   |<utilisateur> ou token <token>  |
+   |<utilisateur> ou #<token>       |
    |.                               |
    +--------------------------------+
 
@@ -205,19 +208,24 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
    *  En cas d'échec
 
 
+      +-------------+
+      |CONNECT_KO   |
+      |.            |
+      +-------------+
 
+   * Dans le cas des futurs échanges avec le serveur, si 
+   l'utilisat⋅eur⋅rice n'est pas connecté, le serveur envoie :
 
+      +--------------+
+      |NOT_CONNECTED |
+      |.             |
+      +--------------+
 
 
 Viau, et al.              Expires 3 April 2021                  [Page 5]
 
 Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
-
-      +-------------+
-      |CONNECT_KO   |
-      |.            |
-      +-------------+
 
 2.3.2.  Déconnexion
 
@@ -292,7 +300,6 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
    *  En cas de succès, le serveur met à jour l'annonce et renvoie
 
-      |SEND_MSG_KO       |
       +-----------------+
       |MAJ_ANC_OK       |
       |<id annonce>     |
@@ -355,7 +362,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
    *  En cas de succès, le serveur renvoie
 
       +----------------+
-      |SEND_DOMAINE_OK |
+      |SEND_DOMAIN_OK  |
       |<domaine 1>     |
       |<domaine 2>     |
       |[...]           |
@@ -466,21 +473,28 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
       +--------------------+
       |REQUEST_IP_OK       |
       |<ip>                |
+      |<utilisateur>       |
       |.                   |
       +--------------------+
-
-
-
-
-Viau, et al.              Expires 3 April 2021                  [Page 9]
-
-Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
-
 
    *  En cas d'échec, il retourne
 
       +--------------------+
       |REQUEST_IP_KO       |
+      |.                   |
+      +--------------------+
+
+Viau, et al.              Expires 3 April 2021                  [Page 9]
+
+Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
+
+2.3.10. Message inconnu
+
+   * Si le serveur ne connait pas le message, il peut envoyé 
+     le message suivant :
+
+      +--------------------+
+      |UNKNOWN_REQUEST     |
       |.                   |
       +--------------------+
 
