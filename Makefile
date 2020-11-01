@@ -34,7 +34,7 @@ server: compile_server
 
 client: compile_client
 	@printf "Run client.\n"
-	java -cp src client.Client $(GDTP_addr) $(GDTP_port)
+	java -cp src client.Client  $(DEBUG) $(GDTP_addr) $(GDTP_port)
 
 clean_common:
 	@printf "Clean_common.\n"
