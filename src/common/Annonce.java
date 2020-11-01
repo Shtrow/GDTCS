@@ -1,7 +1,7 @@
 package common;
 
 /**
- * Class to represent Anounces
+ * Class to represent announces
  *
  * @author Marais - Viau
  */
@@ -85,7 +85,7 @@ public class Annonce {
 	/**
 	 * Title setter
 	 *
-	 * @param titre the title of the anounce, not changed if it's null
+	 * @param titre the title of the announce, not changed if it's null
 	 */
 	public void setTitre(String titre) {
 		if(titre != null) {
@@ -105,7 +105,7 @@ public class Annonce {
 	/**
 	 * Description setter
 	 *
-	 * @param descriptif the description of the anounce, not changed if it's null
+	 * @param descriptif the description of the announce, not changed if it's null
 	 */
 	public void setDescriptif(String descriptif) {
 		if (descriptif != null) {
@@ -134,7 +134,7 @@ public class Annonce {
 	}
 
 	/**
-	 * Anounce id getter
+	 * announce id getter
 	 *
 	 * @return a String that represents the ID
 	 */
@@ -143,7 +143,7 @@ public class Annonce {
 	}
 
 	/**
-	 * Convert the anounce into a sendable string args table
+	 * Convert the announce into a sendable string args table
 	 *
 	 * @return an array of length five
 	 */
@@ -160,8 +160,8 @@ public class Annonce {
 	/**
 	 * Convert a received args table into an Annonce
 	 *
-	 * @param user the user that sends the anounce
-	 * @param args the description of the anounce
+	 * @param user the user that sends the announce
+	 * @param args the description of the announce
 	 * @return an Annonce or null in case of error
 	 */
 	public static Annonce fromStringArgs(String user, String []args) {
@@ -181,7 +181,7 @@ public class Annonce {
 	}
 
 	/**
-	 * Update an anounce with a received table
+	 * Update an announce with a received table
 	 *
 	 * @param args the array received
 	 * @return true if the array if well format
