@@ -45,11 +45,9 @@ public class GDTService implements Runnable {
     private String readMessage() throws IOException {
       String message = "";
       String packet = "";
-      do {
-        packet = in.readLine();
+      while((packet = in.readLine()) !=null && !packet.equals(".")) {
         message += (packet + "\n");
       }
-      while(packet !=null && !packet.equals("."));
       Logs.log("received :\n"+message);
       return message;
     }
