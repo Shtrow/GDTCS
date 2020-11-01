@@ -1,9 +1,3 @@
-/**
- * Class to manage Server
- * Main class
- * @authors Marais-Viau
- */
-
 package server;
 
 import common.Logs;
@@ -15,9 +9,20 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.LinkedList;
 
+/**
+ * Class to manage Server
+ * Main class
+ *
+ * @author Marais-Viau
+ */
 public class Server {
 	private ServerSocket server = null;
 
+	/**
+	 * Constructor
+	 *
+	 * @param port the port on which the server listens
+	 */
 	public Server(int port) {
 		try {
 			server = new ServerSocket(port);
@@ -27,6 +32,9 @@ public class Server {
 		Logs.log("Server created on port: " + port);
 	}
 
+	/**
+	 * Runs the server service
+	 */
 	public void serve() {
 		Logs.log("Server started");
 		while (true) {
@@ -42,6 +50,9 @@ public class Server {
 		}
 	}
 
+	/**
+	 * Main method that runs the server on a choosen port
+	 */
 	public static void main(String[] args) {
 		int port = 1027;
 		if (args.length != 1) {

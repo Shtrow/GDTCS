@@ -1,8 +1,4 @@
-/**
- * Class to handle Server request
- *
- * @authors Marais-Viau
- */
+
 package server;
 
 import java.io.BufferedReader;
@@ -19,6 +15,11 @@ import common.StorageAnnonce;
 import common.Domaine;
 import common.Annonce;
 
+/**
+ * Class to handle Server request
+ *
+ * @author Marais-Viau
+ */
 public class Handler extends Thread {
 	private final static int TIMEOUT = 43_200_000; // 12h
 	private Socket s = null;
@@ -31,6 +32,11 @@ public class Handler extends Thread {
 	private Index index = null;
 	private StorageAnnonce store = null;
 
+	/**
+	 * Constructor
+	 *
+	 * @param s the socket to communicate with the client
+	 */
 	public Handler(Socket s) {
 		if (s != null) {
 			this.s = s;
@@ -262,7 +268,7 @@ public class Handler extends Thread {
 			try {
 				Domaine.DomaineType d = Domaine.fromString(args[0]);
 				String[] argsSent = store.getAncFromDomaine(d);
-				if(argsSent != null && argsSent.length > 0) {
+				if(argsSent != null) {
 					response = new Message(Message.MessageType.SEND_ANC_OK, argsSent);
 					Logs.log("Request anc for " + addr + " with " + name);
 				}
@@ -349,10 +355,15 @@ public class Handler extends Thread {
 		}
 	}
 
+	/**
+	 * Implements Thread class run method
+	 *
+	 * Run the application for one thread
+	 */
+	@Override
 	public void run() {
 		boolean run = true;
 		while (run && !wantAnExit) {
-			System.out.println("LOOOOP");
 			Message m = read();
 			if (m != null) {
 				handler(m);
