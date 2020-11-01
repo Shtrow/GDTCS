@@ -25,7 +25,7 @@ public class Annonce {
 	 * @throws IllegalArgumentException if a field is null or if the price isn't correct
 	 */
 	public Annonce(String user, String domaine, String titre, String descriptif, String prix) {
-		if(user == null || domaine == null || titre == null || descriptif == null || prix == null || isWellFormat(prix)) {
+		if(user == null || domaine == null || titre == null || descriptif == null || prix == null || !isWellFormat(prix)) {
 			throw new IllegalArgumentException("Annonce must be full");
 		}
 		this.domaine = domaine;

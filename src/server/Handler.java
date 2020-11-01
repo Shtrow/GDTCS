@@ -268,7 +268,7 @@ public class Handler extends Thread {
 			try {
 				Domaine.DomaineType d = Domaine.fromString(args[0]);
 				String[] argsSent = store.getAncFromDomaine(d);
-				if(argsSent != null && argsSent.length > 0) {
+				if(argsSent != null) {
 					response = new Message(Message.MessageType.SEND_ANC_OK, argsSent);
 					Logs.log("Request anc for " + addr + " with " + name);
 				}
