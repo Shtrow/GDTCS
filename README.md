@@ -175,3 +175,14 @@ La commande à utiliser est la suivante:
 ```
 
 ## Détail de l'implémentation
+
+### Client
+
+L'implémentation du client s'articule autour de 4 modules.
+ * GDTService une classe qui s'occupe de communiquer directement avec le serveur. Sa fonction principale est `askFor`, elle demande un message en entrée et renvoie un autre message (la réponse) de manière asynchrone. En effet le message reçu sera encapsulé dans un objet Future. Un future est un objet qui contient la promesse d'une valeur. On lui fournira alors un lambda (Un Consumer<Message>) qui implémentera que faire une fois la valeur promise calculée. De cette façon, on s'affranchit de gérer nous-mêmes les threads.
+
+ * La classe DataProvider s'occupe de traiter les réponses reçues (par exemple afficher les réponses reçues).
+
+ * La classe Contrôler traite les inputs de l'utilisateur et appelle les fonctions nécessaires dans l'objet Data Provider.
+
+ * La classe ProductViewer quant à elle, fournit des fonctions pour afficher de manière élégante les tableaux de produit.
