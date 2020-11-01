@@ -8,7 +8,7 @@ import java.util.Scanner;
 
 public class Controller implements Runnable {
 
-  private DataProvider dataProvider;
+  private final DataProvider dataProvider;
 
   private final Runnable missingArg = () -> System.out.println("Missing arguments");
 
