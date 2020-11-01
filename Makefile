@@ -1,11 +1,15 @@
 # +------------------------------+
 # | Good Duck Transfert Protocol |
-# | Version: 0.1                 |
-# | RFC: draft-5                 |
+# | Version: 1.0                 |
+# | RFC: draft-6.4.1             |
 # | Authors: Marais-Viau         |
 # +------------------------------+
 
-VERSION="0.1"
+VERSION="1.0"
+SERVER_PORT ?= 1027
+GDPT_port ?= 1027
+GDTP_addr ?= 127.0.0.1
+DEBUG ?= no
 
 all: compile_client compile_server
 
@@ -25,12 +29,12 @@ compile_client: compile_common
 	javac -cp src src/client/*.java
 
 server: compile_server
-	@printf "Run server on port 1027.\n\n"
-	@java -cp src server.Server 1027
+	@printf "Run server on port $(SERVER_PORT).\n\n"
+	@java -cp src server.Server $(SERVER_PORT)
 
 client: compile_client
 	@printf "Run client.\n"
-	java -cp src client.Client
+	java -cp src client.Client $(GDTP_addr) $(GDTP_port)
 
 clean_common:
 	@printf "Clean_common.\n"
