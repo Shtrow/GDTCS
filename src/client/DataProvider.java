@@ -3,6 +3,11 @@ package client;
 import common.Logs;
 import common.Message;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
 import java.util.function.Consumer;
 
 /**
@@ -15,6 +20,7 @@ public class DataProvider {
 
 	public DataProvider(GDTService service) {
 		this.service = service;
+		getTokenFromDisk();
 	}
 
 	String userName = null;
@@ -52,6 +58,54 @@ public class DataProvider {
 	}
 
 	/**
+	 * Get the token and the user name from $HOME/.config/gdtp/token
+	 *
+	 */
+	private void getTokenFromDisk(){
+		File file = new File(System.getenv("HOME")+"/.config/gdtp/token");
+		if(!file.exists()){
+			return;
+		}
+		try {
+			Scanner scanner = new Scanner(file);
+			if(scanner.hasNextLine()){
+				this.userName = scanner.nextLine();
+			}
+			if(scanner.hasNextLine()){
+				this.token = scanner.nextLine();
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Write the user name and his token in $HOME/.config/gdtp/token
+	 *
+	 * @param userName The user name of the user
+	 * @param token Token of the user
+	 */
+	private void writeTokenInDisk(String userName, String token){
+		File file = new File(System.getenv("HOME")+"/.config/gdtp/token");
+		if(!file.exists()){
+			try {
+				file.getParentFile().mkdirs();
+				file.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		try {
+			FileWriter fileWriter = new FileWriter(file);
+			fileWriter.write(userName);
+			fileWriter.append("\n"+token);
+			fileWriter.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
 	 * Handle the connection when you have already been connect
 	 */
 	public void connect() {
@@ -79,12 +133,14 @@ public class DataProvider {
 			boolean check = basicRequest(m, Message.MessageType.CONNECT_NEW_USER_OK, Message.MessageType.CONNECT_NEW_USER_KO,
 					v -> {
 						this.token = "#" + m.getArgs()[0];
+						writeTokenInDisk(this.userName,this.token);
 						System.out.println("Connected! Welcome " + userName + "\nYour token is : " + token);
 					}, v -> System.out.println("Connection refused by the server"));
 			if (!check) {
 				basicRequest(m, Message.MessageType.CONNECT_OK, Message.MessageType.CONNECT_KO, v -> {
 					this.token = "#" + m.getArgs()[0];
-					System.out.println("Connected! Welcome back " + userName + "\nYour token is : " + token);
+                    writeTokenInDisk(this.userName,this.token);
+                    System.out.println("Connected! Welcome back " + userName + "\nYour token is : " + token);
 				}, v -> System.out.println("Connection refused by the server"));
 			}
 		}).join();
