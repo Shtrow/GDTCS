@@ -150,6 +150,7 @@ Pour poster une nouvelle annonce, il faut lancer l'éditeur intéractif:
 ```
 >> post
 ```
+Le prix s'écrit avec le format suivant :`13.50` correspond à 13.50€
 
 8. Mise à jour
 
