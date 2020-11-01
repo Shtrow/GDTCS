@@ -37,7 +37,7 @@ public class Controller implements Runnable {
 			System.out.flush();
 			System.out.print(">> ");
 			System.out.flush();
-			String commandString = scanner.nextLine();
+              String commandString = scanner.nextLine();
 			Runnable command = parse(commandString);
 			command.run();
 		}
@@ -159,7 +159,6 @@ public class Controller implements Runnable {
 			} else
 				args[i] = s;
 		}
-		scanner.close();
 		return args;
 	}
 }
