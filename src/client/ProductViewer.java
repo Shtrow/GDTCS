@@ -72,6 +72,7 @@ public class ProductViewer {
                 }
         );
         printGates.run();
+        System.out.println();
 
     }
     public static void printDomains(String[] domains){
@@ -87,7 +88,7 @@ public class ProductViewer {
         }
         System.out.println("\n"+final_s+"|");
         printGate(gateSize);
-        System.out.print("+");
+        System.out.println("+");
 
 
     }

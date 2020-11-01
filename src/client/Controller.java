@@ -51,12 +51,19 @@ public class Controller implements Runnable {
           };
         }
       case "post":
-        if (tokens.length<5) return missingArg;
+        if (tokens.length<5) return () -> dataProvider.postAnc(createAnnonceHelper(true));
         else {
           return (() -> dataProvider.postAnc(Arrays.copyOfRange(tokens,1,tokens.length)));
         }
       case "update" :
-        if (tokens.length<5) return missingArg;
+        if (tokens.length == 2 ) return () -> {
+          String [] l = new String[5];
+          l[0] = tokens[1];
+          String [] b = createAnnonceHelper(false);
+          System.arraycopy(b,0,l,1,4);
+          dataProvider.updateAnc(l);
+        };
+        else if(tokens.length<5) return missingArg;
         else {
           return (() -> dataProvider.updateAnc(Arrays.copyOfRange(tokens,1,tokens.length)));
         }
@@ -95,5 +102,38 @@ public class Controller implements Runnable {
             "- %" + -indentSize + "s Delete an \"annonces\"\n";
             System.out.printf(s,
             "connect","exit","domains","ancs [DOMAIN]","own","post","update [ANC ID]","ip [ANC ID]","delete [ANC ID]");
+  }
+
+  private String[] createAnnonceHelper(boolean new_entry){
+    String[] args = new String[4];
+    Scanner scanner = new Scanner(System.in);
+    for (int i = 0; i < args.length; i++) {
+      switch (i){
+        case 0:
+          System.out.println("Please inform the domain");
+          break;
+        case 1:
+          System.out.println("Please inform the title");
+          break;
+        case 2:
+          System.out.println("Please inform the description");
+          break;
+        case 3:
+          System.out.println("Please inform the price");
+          break;
+      }
+      if(!new_entry){
+
+        System.out.println("(Type nothing for no information)");
+      }
+      String s = scanner.nextLine();
+      s.trim();
+      if(s.isEmpty()){
+        if(!new_entry) args[i] = "null";
+        else i--;
+      }
+      else args[i] = s;
+    }
+    return args;
   }
 }
