@@ -6,10 +6,10 @@
 # +------------------------------+
 
 VERSION="1.0"
-SERVER_PORT ?= 1027
-GDPT_port ?= 1027
-GDTP_addr ?= 127.0.0.1
-DEBUG ?= no
+SERVER_PORT ?= "1027"
+GDTP_port ?= "1027"
+GDTP_addr ?= "127.0.0.1"
+DEBUG ?= "no"
 
 all: compile_client compile_server
 

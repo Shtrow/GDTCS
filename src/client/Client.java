@@ -1,25 +1,39 @@
-/*
- * Main class
- */
 package client;
+
 import common.Logs;
 
 import java.io.IOException;
+import java.util.IllegalFormatException;
 
+/**
+ * Client CLI Manager - Main class
+ *
+ * @author Marais-Viau
+ */
 public class Client {
 	public static void main(String[] args) throws IOException {
-		String userName = "Maitre Simonard";
-		client.GDTService GDTService =
-//				new GDTService("192.168.43.62",1027,5);
-			new GDTService();
-		GDTService.run();
+		if (args.length == 3) {
+			boolean debug = (args[0] != null && args[0].equals("no")) ? false : true;
+			String addr = args[1];
+			int port = 1027;
 
-		DataProvider dataProvider = new DataProvider(GDTService);
+			try {
+				port = Integer.parseInt(args[2]);
+			} catch (IllegalFormatException e) {
+				System.out.println("Port format error");
+			}
+			if (!debug) {
+				Logs.debugOff();
+			}
 
-    	Controller c = new Controller(dataProvider);
-
-    	c.run();
-
-		System.out.println("Running client [OK]");
+			client.GDTService GDTService = new GDTService(addr, port);
+			GDTService.run();
+			DataProvider dataProvider = new DataProvider(GDTService);
+			Controller c = new Controller(dataProvider);
+			c.run();
+			System.out.println("Running client [OK]");
+		} else {
+			System.out.println("Not enough args for client: [debug] [addr] [port]");
+		}
 	}
 }
