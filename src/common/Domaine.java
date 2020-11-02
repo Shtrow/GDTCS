@@ -18,7 +18,7 @@ public class Domaine {
 			switch(domaine.toUpperCase()) {
 				 case "AUTRE":
 						return DomaineType.AUTRE;
-				 case "IMMOBILER":
+				 case "IMMOBILIER":
 						return DomaineType.IMMOBILIER;
 				 case "LOGICIEL":
 						return DomaineType.LOGICIEL;

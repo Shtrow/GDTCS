@@ -28,7 +28,7 @@ public class Annonce {
 		if(user == null || domaine == null || titre == null || descriptif == null || prix == null || !isWellFormat(prix)) {
 			throw new IllegalArgumentException("Annonce must be full");
 		}
-		this.domaine = domaine;
+		this.domaine = domaine.toUpperCase();
 		this.user = user;
 		this.titre = titre;
 		this.descriptif = descriptif;
