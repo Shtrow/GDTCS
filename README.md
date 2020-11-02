@@ -248,15 +248,20 @@ L'implémentation du client s'articule autour de 4 modules.
 
  **DataProvider.java**
 
- Cette classe s'occupe de traiter les réponses reçues (par exemple afficher les réponses reçues).
+ Cette classe s'occupe de traiter les réponses reçues (par exemple afficher les .
+  De la même manière que HTTP, le client n'attend du serveur que des réponse à ses requêtes. D'où l'existance de la fonction `basicRequest` qui permet de synthétiser l'idée du protocole :
+  Elle prend un Message d'envoie en argument, ainsi que des fonctions codants les comportements attendus selon si la réponse et positive ou négative
+ Par exemple, on appelle cette fonction avec le message CONNECT ainsi que 2 fonctions. Une qui va afficher 'Success !' si l'on recois comme réponse 'CONNECT_OK' et une autre qui va afficher 'Error' si on recoit un message 'CONNECT_KO'.
 
- **Contrôler.java**
+ Cette classe s'occupe également de concerver les identifiants de l'utilisateur sur le disque.
 
- Son rôle est de traiter les inputs de l'utilisateur et appelle les fonctions nécessaires dans l'objet Data Provider.
+ **Controller.java**
+
+ Son rôle est de traiter les inputs de l'utilisateur et appelle les fonctions nécessaires dans l'objet DataProvider.
 
  **ProductViewer.java**
  
- quant à elle, fournit des fonctions pour afficher de manière élégante les tableaux de produit.
+ProductViewer quant à elle, fournit des fonctions pour afficher de manière élégante les tableaux de produit.
 
 ### Serveur
 
