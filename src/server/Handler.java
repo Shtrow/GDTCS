@@ -156,14 +156,14 @@ public class Handler extends Thread {
 				if(index.isValidToken(argSend[0])) {
 					name = index.getUserFromToken(argSend[0]);
 					if (name == null) { send = false; }
-					index.updateIp(addr, name);
+					index.updateIp(name, addr);
 				} else { send = false; }
 			} else { // ------------------------------------ User
 				name = args[0];
 				if(index.isValidUser(name)) {
 					argSend[0] = index.getToken(name);
 					if(argSend[0] == null) { argSend[0] = index.initNewToken(name); }
-					index.updateIp(addr, name);
+					index.updateIp(name, addr);
 				} else {
 					newUser = true;
 					if(index.addUser(name, addr)) {
