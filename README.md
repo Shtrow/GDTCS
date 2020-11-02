@@ -16,8 +16,9 @@
     - Serveur
     - Client
  - Détails l'implémentation
-  - Serveur
-  - Client
+    - Partie commune
+    - Serveur
+    - Client
 
 ## Protocole
 Le répertoire suivant contient le code qui implémente le protocole GDPT pour le côté serveur et pour le côté client.
@@ -75,6 +76,12 @@ Par défaut, le client n'affiche pas les paquets reçus pour permettre une meill
 à l'utilisateur. Il est cependant possible de les voir grâce au paramètre suivant:
 ```sh
   $ make client DEBUG=yes <options>
+```
+
+Nous avons aussi mis en ligne un serveur accessible de n'importe où qui sotcke des annonces depuis le 2 Novembre.
+Pour vous y connectez, vous devez taper la commande suivante:
+```
+ $ make client GDTP_addr=psi.maiste.fr
 ```
 
 ### Nettoyer le répertoire
@@ -176,13 +183,93 @@ La commande à utiliser est la suivante:
 
 ## Détail de l'implémentation
 
+
+Nous allons ici, vous parlez des détails de notre implémentation et des choix que nous avons fait qui
+ne sont pas précisés dans le protocole. Nous allons aussi décrire les classes que nous avons définies
+et leur utilité. Le code mélange des éléments d'anglais et de français.
+Nous avons fait le choix de répartir notre code dans les trois packages suivants:
+
+### Partie commune
+
+Nous avons fait le choix dans notre implémentation de ne stocker en mémoire que des chaines de caractères
+pour permettre une réponse plus rapide du serveur. Les vérifications sont effectuées à l'insertion des données.
+
+**Logs.java**
+
+Il s'agit de la la classe la plus simple. Afin de fournir aux classes Client et Serveur un
+système permettant de débogguer le code facilement, nous avons implémenté cette classe qui repose sur le Logger fournit par java. Il permet d'avoir ici système lisible, data, qui fournit aussi une information sur la position de l'erreur dans le code et qui offre une distinction dans les niveaux de criticité des erreurs.
+
+**Message.java**
+
+Les messages echangés pour le protocole GDTP sont représentés comme un type de messages avec son tableau d'arguments. Les types des messages sont définis au sein d'une énumération. Il est donc très simple de rajouter un nouveau type d'en-tête reconnu par le serveur. Comme indiqué au dessus, les arguments sont représentés comme de simples chaines de caractères. Cette classe a vocation a géré le passage d'une chaine de caractères produites par tcp en un message compréhensible par le serveur et vice-et-versa.
+
+**Domaine.java**
+
+Cette classe est la pour représenter les domaines accessibles depuis le serveur. Comme les messages, les domaines sont représentés par des énumérations afin d'être facilement extensible. En effet, le serveur se sert de l'énumération pour constuire l'arbre qui stocke les domaines.
+
+Les domaines de chaque serveur ne sont pas définis. Il est libre pour chaque groupe de choisir les domaines que son serveur offre. Dans notre cas, nous avons repris les grands domaines du site leboncoin.fr. Ils sont toujours stockés sous forme de lettres majuscules pour notre serveur afin de ne pas faire de distinction.
+
+**Annonce.java**
+
+Les annonces sont définies par leur domaine, leur titre, leur description et leur prix. Ces 
+quatre arguments sont des chaines de caractères pour ne pas avoir à effectuer de conversion à l'envoi. En outre des vérifications sont effectuées sur sur les arguments pour s'assurer qu'aucun n'est vide et que le prix est bien formatter comme défini par Java. Cette classe ne gère que l'invariant qui indique qu'aucun des champs doit être à *null*. Les objets ayant une unique signature en mémoire, l'id de l'objet est créé par concaténation de l'utilisateur avec son id.
+
+**Index.java**
+
+Il s'agit d'une des classes les plus importantes pour le serveur. En effet, c'est elle qui assure la cohérence entre les utilisateurs. Il s'agit d'une classe où les accès se font en concurrence. Pour cela, chacun des méthodes appelée est vérrouillée par le mot clef synchronized afin de limité l'accès concurrent. Pour permettre aux Threads qui l'utilisent, cette classe est conçue comme un singleton et n'existe donc qu'une fois en mémoire. Elle conserve et assure la cohérence des données utilisateurs et vérifie les invariants suivants:
+
+* Un utilisateur n'est connecté qu'avec une ip en même temps
+* Il n'existe qu'un utilisateur avec le même nom
+* Aucun token de connexion n'existe en même temps dans la mémoire
+
+Pour venir à bien de sa mission, on trouve dans l'index, 2 structures de données:
+
+ * Une table de hachage, users, contenant la liste des utilisateurs qui se sont déjà connectés une fois. Elle associe à chaque utilisateur un token de connection qui doit nous servir pour assurer la partie sécurité plus tard.
+ * Une table de hachage, cache, qui contient pour chaque utilisateur l'adresse à laquelle il est actuellement connecté. Elle est supprimée lors de la déconnection de l'utilisateur.
+
+Ainsi la récupération des données courantes se fait en temps constant et pour les autres en temps linéaire sur la taille de la table.
+
+**StorageAnnonce.java**
+
+Cette classe s'occupe de sauvegarder en mémoire les données des annonces. Les domaines sont stockés sous forme de noeud d'un arbre et chaque noeud indexe une table de hachage où les annonces sont indexées par id d'annonce. Comme il s'agit d'une classe qui fonctionne en concurrence, elle a les mêmes propriétés que l'index. Ses méthodes empechent les accès concurrent via synchronized et il s'agit d'une classe de type singleton. En outre, cette organisation des données permet de trouver une annonce en temps O(nlog n) au grand maximum et de d'ajouter des données en temps log n. Cette classe vérifie les invariants suivants:
+
+* Chaque domaine possède une table de hachage regroupant ses annonces, celle-ci est potentiellement vide.
+* Chaque annonce est insérée dans une table de hachage du domaine qui lui correspond.
+* On ne peut pas insérer une annonce qui existe déjà.
+* Un utilisateur ne peut que modifier ou supprimer une annonce qui lui appartient.
+
 ### Client
 
 L'implémentation du client s'articule autour de 4 modules.
- * GDTService une classe qui s'occupe de communiquer directement avec le serveur. Sa fonction principale est `askFor`, elle demande un message en entrée et renvoie un autre message (la réponse) de manière asynchrone. En effet le message reçu sera encapsulé dans un objet Future. Un future est un objet qui contient la promesse d'une valeur. On lui fournira alors un lambda (Un Consumer<Message>) qui implémentera que faire une fois la valeur promise calculée. De cette façon, on s'affranchit de gérer nous-mêmes les threads.
 
- * La classe DataProvider s'occupe de traiter les réponses reçues (par exemple afficher les réponses reçues).
+ **GDTService.java**
 
- * La classe Contrôler traite les inputs de l'utilisateur et appelle les fonctions nécessaires dans l'objet Data Provider.
+ Il s'agit d'une classe qui s'occupe de communiquer directement avec le serveur. Sa fonction principale est `askFor`, elle demande un message en entrée et renvoie un autre message (la réponse) de manière asynchrone. En effet le message reçu sera encapsulé dans un objet Future. Un future est un objet qui contient la promesse d'une valeur. On lui fournira alors un lambda (Un Consumer<Message>) qui implémentera que faire une fois la valeur promise calculée. De cette façon, on s'affranchit de gérer nous-mêmes les threads.
 
- * La classe ProductViewer quant à elle, fournit des fonctions pour afficher de manière élégante les tableaux de produit.
+ **DataProvider.java**
+
+ Cette classe s'occupe de traiter les réponses reçues (par exemple afficher les réponses reçues).
+
+ **Contrôler.java**
+
+ Son rôle est de traiter les inputs de l'utilisateur et appelle les fonctions nécessaires dans l'objet Data Provider.
+
+ **ProductViewer.java**
+ 
+ quant à elle, fournit des fonctions pour afficher de manière élégante les tableaux de produit.
+
+### Serveur
+
+Notre serveur a été conçu pour stocker les données dans la RAM comme une base de données
+de type REDIS. Lorsque l'on coupe le serveur, les données sont effacées. Cela permet d'avoir un serveur très rapide mais qui n'est conçus pour la persistence des données.
+Il est composé de deux classes:
+
+**Server.java**
+
+Il s'agit de la classe qui écoute les requêtes entrante. À chaque nouvelle connexion sur la socket d'écoute, elle créé une nouvelle socket qui est traitée dans une nouvelle Thread de type Handler.
+
+**Handler.java**
+
+Cette classe s'occupe de gérer les échanges entre le serveur et le client une fois la connexion établie. Elle lit les requêtes ligne par ligne jusqu'à voir un point. Quand elle voit celui-ci elle transforme la requête en message et la traite via un switch pour déterminer l'action a executée. Toutes les actions néccessitent d'abord de se connecter en suivant le protocole. Sinon le message NOT_CONNECTED est envoyé. Aussi, le protocole a été écrit de tel façon que si la requête est inconnue nous pouvons le spécifier au client auquel nous sommes connectés. Il est donc très facile d'étendre le protocole avec de nouvels en-têtes: il suffit d'écrire une nouvelle méthode est de l'ajouter au switch.
+
+Chaque "handler" possède un timeout de 12H pour couper la connection en cas d'absence de message pendant cette durée. Dans le cas, où le client se déconnecte, le serveur ferme automatiquement la connection et retire l'utilisateur de  la liste des IP en cours de connexions.
