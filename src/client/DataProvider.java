@@ -50,6 +50,9 @@ public class DataProvider {
 			Logs.warning("Communication error \nServer response :" + message.toNetFormat());
 			System.out.println("You need to be connected first\n");
 			return false;
+		} else if (message.getType() == Message.MessageType.UNKNOWN_REQUEST) {
+			Logs.error("Unknown Request");
+			System.out.println("The send message is not compatible with the server");
 		} else {
 			Logs.error("Communication error \nServer response :" + message.toNetFormat());
 			return false;
