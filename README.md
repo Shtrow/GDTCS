@@ -56,7 +56,7 @@ Pour compiler, il faut se placer à la racine du dossier, là où se trouve le *
 
 ### Serveur
 
-Pour compiler et lancer le serveur sur le port **1027**, il faut exécuter la commande suivant :
+Pour compiler et lancer le serveur sur le port **1027**, il faut exécuter la commande suivante :
 
 ```sh
   $ make server
@@ -193,7 +193,7 @@ Pour mettre à jour une annonce, il faut écrire :
 
 #### Suppression
 
-Pour supprimer une annonce qui vous appartient du serveur, il faut lancer la commande suivante :
+Pour supprimer une annonce sur le serveur qui vous appartient, il faut lancer la commande suivante :
 
 ```
  >> delete [ID ANNONCE]
@@ -213,8 +213,7 @@ La commande à utiliser est la suivante :
 
 Nous allons ici vous parler des détails de notre implémentation et des choix que nous avons faits qui
 ne sont pas précisés dans le protocole. Nous allons aussi décrire les classes que nous avons définies
-et leur utilité. Le code mélange des éléments d'anglais et de français.
-Nous avons fait le choix de répartir notre code dans les trois packages suivants :
+et leur utilité. Nous avons fait le choix de répartir notre code dans les trois packages suivants :
 
 ### Parties communes
 
