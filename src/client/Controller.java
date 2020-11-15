@@ -1,5 +1,7 @@
 package client;
 
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.net.InetSocketAddress;
