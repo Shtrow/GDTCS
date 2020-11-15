@@ -1,5 +1,7 @@
 package client;
 
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -10,7 +12,9 @@ import java.util.Scanner;
  */
 public class Controller implements Runnable {
 	private final DataProvider dataProvider;
-	private final Runnable missingArg = () -> System.out.println("Missing arguments");
+	private InputStream mainInputStream;
+	private PrintStream mainPrintStream;
+	private final Runnable missingArg = () ->  mainPrintStream.println("Missing arguments");
 
 	/**
 	 * Constructor
@@ -19,6 +23,16 @@ public class Controller implements Runnable {
 	 */
 	public Controller(DataProvider dataProvider) {
 		this.dataProvider = dataProvider;
+		mainInputStream = System.in;
+		mainPrintStream = System.out;
+	}
+
+	public InputStream getMainInputStream() {
+		return mainInputStream;
+	}
+
+	public PrintStream getMainPrintStream() {
+		return mainPrintStream;
 	}
 
 	private void header() {
@@ -32,12 +46,12 @@ public class Controller implements Runnable {
 	public void run() {
 		boolean run = true;
 		header();
-		Scanner scanner = new Scanner(System.in);
+		Scanner scanner = new Scanner(mainInputStream);
 		while (run) {
-			System.out.flush();
-			System.out.print(">> ");
-			System.out.flush();
-              String commandString = scanner.nextLine();
+			mainPrintStream.flush();
+			mainPrintStream.print(">> ");
+			mainPrintStream.flush();
+			String commandString = scanner.nextLine();
 			Runnable command = parse(commandString);
 			command.run();
 		}
