@@ -38,7 +38,7 @@ public class PromptTest {
         hints.add(Window.Hint.EXPANDED);
         win1.setHints(hints);
         Panel contentPanel = new Panel(new BorderLayout());
-        Panel mainPanel = new Panel(new LinearLayout());
+        Panel mainPanel = new Panel(new GridLayout(2));
         Label title = new Label("This is a label that spans two columns");
         title.setLayoutData(GridLayout.createLayoutData(
                 GridLayout.Alignment.BEGINNING, // Horizontal alignment in the grid cell if the cell is larger than the component's preferred size
@@ -71,8 +71,9 @@ public class PromptTest {
 //        });
 //        promptPanel.addComponent(submitButton);
         contentPanel.addComponent(promptPanel.setLayoutData(BorderLayout.Location.BOTTOM));
-        mainPanel.addComponent(contentPanel);
-        mainPanel.addComponent(new ChatPanel());
+        mainPanel.addComponent(contentPanel.setLayoutData(GridLayout.createHorizontallyFilledLayoutData()));
+        mainPanel.addComponent(new ChatPanel().setLayoutData(GridLayout.createHorizontallyFilledLayoutData()));
+
 
         win1.setComponent(mainPanel);
         gui.addWindowAndWait(win1);
