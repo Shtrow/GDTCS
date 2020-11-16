@@ -1,7 +1,8 @@
 package client;
 
-import java.io.InputStream;
-import java.io.PrintStream;
+import client.gui.GUI;
+
+import java.io.*;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -12,9 +13,11 @@ import java.util.Scanner;
  */
 public class Controller implements Runnable {
 	private final DataProvider dataProvider;
-	private InputStream mainInputStream;
-	private PrintStream mainPrintStream;
-	private final Runnable missingArg = () ->  mainPrintStream.println("Missing arguments");
+	private InputStream inputStream;
+	private OutputStream outputStream;
+	private PrintStream printStream;
+	private final Runnable missingArg = () ->  printStream.println("Missing arguments");
+	private GUI gui;
 
 	/**
 	 * Constructor
@@ -23,36 +26,37 @@ public class Controller implements Runnable {
 	 */
 	public Controller(DataProvider dataProvider) {
 		this.dataProvider = dataProvider;
-		mainInputStream = System.in;
-		mainPrintStream = System.out;
-	}
-
-	public InputStream getMainInputStream() {
-		return mainInputStream;
-	}
-
-	public PrintStream getMainPrintStream() {
-		return mainPrintStream;
+		try {
+			outputStream = new FileOutputStream("user_in.txt");
+			inputStream = new FileInputStream("user_in.txt");
+			printStream = new PrintStream(outputStream);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		gui = new GUI(printStream);
 	}
 
 	private void header() {
 		String head = "********************************\n" + "* Good Duck Transport Protocol *\n"
 				+ "*        Client Utility        *\n" + "*       By Marais - Viau       *\n"
 				+ "********************************\n";
-		System.out.println(head);
+		printStream.println(head);
 	}
 
 	@Override
 	public void run() {
 		boolean run = true;
 		header();
-		Scanner scanner = new Scanner(mainInputStream);
 		while (run) {
-			mainPrintStream.flush();
-			mainPrintStream.print(">> ");
-			mainPrintStream.flush();
-			String commandString = scanner.nextLine();
-			Runnable command = parse(commandString);
+			gui.run();
+		}
+		Scanner scanner = new Scanner(inputStream);
+		while (run) {
+			printStream.flush();
+			printStream.print(">> ");
+			printStream.flush();
+			String commandstring = scanner.nextLine();
+			Runnable command = parse(commandstring);
 			command.run();
 		}
 		scanner.close();
