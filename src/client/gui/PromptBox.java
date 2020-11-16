@@ -26,11 +26,4 @@ public class PromptBox extends TextBox {
             }
             return super.handleKeyStroke(keyStroke);
     }
-
-    @Override
-    protected void afterLeaveFocus(FocusChangeDirection direction, Interactable nextInFocus) {
-        super.afterLeaveFocus(direction, nextInFocus);
-        System.out.println("SDF");
-        this.takeFocus();
-    }
 }

@@ -15,9 +15,14 @@ public class Controller implements Runnable {
 	private final DataProvider dataProvider;
 	private InputStream inputStream;
 	private OutputStream outputStream;
-	private PrintStream printStream;
-	private final Runnable missingArg = () ->  printStream.println("Missing arguments");
-	private GUI gui;
+	PipedOutputStream userCommandOutput;
+	PipedInputStream  userCommandInput;
+	PipedOutputStream displayOutput;
+	PipedInputStream  displayInput;
+	PrintStream commandPrinter;
+	public volatile GUI gui;
+
+	private final Runnable missingArg = () ->gui.println("Missing arguments");
 
 	/**
 	 * Constructor
@@ -27,34 +32,36 @@ public class Controller implements Runnable {
 	public Controller(DataProvider dataProvider) {
 		this.dataProvider = dataProvider;
 		try {
-			outputStream = new FileOutputStream("user_in.txt");
-			inputStream = new FileInputStream("user_in.txt");
-			printStream = new PrintStream(outputStream);
-		} catch (FileNotFoundException e) {
+		    userCommandOutput = new PipedOutputStream();
+			userCommandInput  = new PipedInputStream(userCommandOutput);
+			commandPrinter = new PrintStream(userCommandOutput);
+
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		gui = new GUI(printStream);
 	}
 
 	private void header() {
 		String head = "********************************\n" + "* Good Duck Transport Protocol *\n"
 				+ "*        Client Utility        *\n" + "*       By Marais - Viau       *\n"
 				+ "********************************\n";
-		printStream.println(head);
+		gui.println(head);
 	}
 
 	@Override
 	public void run() {
 		boolean run = true;
-		header();
-		while (run) {
-			gui.run();
+		try {
+			Thread.sleep(1100);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
-		Scanner scanner = new Scanner(inputStream);
+		header();
+		Scanner scanner = new Scanner(userCommandInput);
 		while (run) {
-			printStream.flush();
-			printStream.print(">> ");
-			printStream.flush();
+//			commandPrinter.flush();
+//			gui.print(">> ");
+//			commandPrinter.flush();
 			String commandstring = scanner.nextLine();
 			Runnable command = parse(commandstring);
 			command.run();
@@ -114,7 +121,7 @@ public class Controller implements Runnable {
 			case "exit":
 				return dataProvider::disconnect;
 			case "echo":
-				return () -> System.out.println(command);
+				return () -> gui.println("ECHO :"+command);
 			case "domains":
 				return dataProvider::getDomains;
 			case "ancs":

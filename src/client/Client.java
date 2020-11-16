@@ -1,5 +1,6 @@
 package client;
 
+import client.gui.GUI;
 import common.Logs;
 
 import java.io.IOException;
@@ -25,12 +26,14 @@ public class Client {
 			if (!debug) {
 				Logs.debugOff();
 			}
-
 			client.GDTService GDTService = new GDTService(addr, port);
 			GDTService.run();
 			DataProvider dataProvider = new DataProvider(GDTService);
-			Controller c = new Controller(dataProvider);
-			c.run();
+			GUI gui = new GUI(dataProvider);
+			DataProvider.setGui(gui);
+			gui.run();
+//			Controller c = new Controller(dataProvider);
+//			c.run();
 			System.out.println("Running client [OK]");
 		} else {
 			System.out.println("Not enough args for client: [debug] [addr] [port]");
