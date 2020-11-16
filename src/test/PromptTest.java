@@ -50,15 +50,7 @@ public class PromptTest {
         contentPanel.addComponent(title);
         contentPanel.addComponent(new Label("ASLJDLSAJDLASJDKASDKASDJ").setLayoutData(BorderLayout.Location.CENTER));
         Panel promptPanel = new Panel(new BorderLayout());
-        TextBox promptBox = new TextBox().setLayoutData(BorderLayout.Location.CENTER);
-        promptBox.setInputFilter((interactable, keyStroke) -> {
-            if(keyStroke.getKeyType() == KeyType.Enter){
-                String d =promptBox.getText();
-                title.setText(d);
-                promptBox.setText("");
-            }
-            return true;
-        });
+        TextBox promptBox = new PromptBox(title::setText).setLayoutData(BorderLayout.Location.CENTER);
         promptPanel.addComponent(promptBox);
 
 //        Button submitButton = new Button("Submit").setLayoutData(BorderLayout.Location.RIGHT);
@@ -71,8 +63,8 @@ public class PromptTest {
 //        });
 //        promptPanel.addComponent(submitButton);
         contentPanel.addComponent(promptPanel.setLayoutData(BorderLayout.Location.BOTTOM));
-        mainPanel.addComponent(contentPanel.setLayoutData(GridLayout.createHorizontallyFilledLayoutData()));
-        mainPanel.addComponent(new ChatPanel().setLayoutData(GridLayout.createHorizontallyFilledLayoutData()));
+        mainPanel.addComponent(contentPanel.setLayoutData(GridLayout.createHorizontallyFilledLayoutData()).withBorder(Borders.singleLine("Store")));
+        mainPanel.addComponent(new ChatPanel().setLayoutData(GridLayout.createHorizontallyFilledLayoutData()).withBorder(Borders.singleLine("Chat")));
 
 
         win1.setComponent(mainPanel);

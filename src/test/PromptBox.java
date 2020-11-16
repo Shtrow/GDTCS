@@ -9,24 +9,19 @@ import com.googlecode.lanterna.input.KeyType;
 import java.util.function.Consumer;
 
 public class PromptBox extends TextBox {
-        public PromptBox(Consumer<String> behavior){
-            super();
-            this.setLayoutData(BorderLayout.Location.CENTER);
-            this.setInputFilter((interactable, keyStroke) -> {
-                if(keyStroke.getKeyType() == KeyType.Enter){
-                    String d =this.getText();
-                    behavior.accept(d);
-                    this.setText("");
-                }
-                return true;
-            });
-//            this.handleKeyStroke(new KeyStroke(KeyType.Enter));
-
-        }
+    private Consumer<String> behavior;
+    public PromptBox(Consumer<String> behavior){
+        super();
+        this.setLayoutData(BorderLayout.Location.CENTER);
+        this.behavior=behavior;
+    }
 
     @Override
     public synchronized Result handleKeyStroke(KeyStroke keyStroke) {
             if(keyStroke.getKeyType() == KeyType.Enter){
+                String d =this.getText();
+                behavior.accept(d);
+                this.setText("");
                 return Result.HANDLED;
             }
             return super.handleKeyStroke(keyStroke);
@@ -38,5 +33,4 @@ public class PromptBox extends TextBox {
         System.out.println("SDF");
         this.takeFocus();
     }
-
 }
