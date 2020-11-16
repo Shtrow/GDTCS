@@ -9,13 +9,14 @@ import java.io.PrintStream;
 
 public class StorePanel extends Panel {
     private String panelText = "";
-    PrintStream out;
-    public StorePanel(PrintStream out ) {
+    Label contentLabel;
+    GUI gui;
+    public StorePanel(GUI gui) {
         super(new BorderLayout());
-        this.out = out;
+        this.gui = gui;
 
-        Label contentLabel = new Label(panelText);
-        TextBox promptBox = new PromptBox(out::print)
+        contentLabel = new Label(panelText);
+        TextBox promptBox = new PromptBox(s -> gui.currentStep.apply(s).run())
                 .setLayoutData(BorderLayout.Location.BOTTOM);
 
         this.addComponent(contentLabel.setLayoutData(BorderLayout.Location.CENTER));
@@ -25,5 +26,6 @@ public class StorePanel extends Panel {
 
     public void setPanelText(String panelText) {
         this.panelText = panelText;
+        contentLabel.setText(panelText);
     }
 }
