@@ -1,5 +1,6 @@
 package client;
 
+import client.gui.GUI;
 import common.Logs;
 import common.Message;
 
@@ -17,10 +18,16 @@ import java.util.function.Consumer;
  */
 public class DataProvider {
 	private GDTService service;
+	private static GUI gui;
 
 	public DataProvider(GDTService service) {
 		this.service = service;
 		getTokenFromDisk();
+	}
+
+	public static void setGui(GUI gui) {
+		DataProvider.gui = gui;
+		ProductViewer.setGui(gui);
 	}
 
 	String userName = null;
@@ -52,7 +59,7 @@ public class DataProvider {
 			return null;
 		} else if (message.getType() == Message.MessageType.UNKNOWN_REQUEST) {
 			Logs.error("Unknown Request");
-			System.out.println("The send message is not compatible with the server");
+			gui.println("The send message is not compatible with the server");
 		} else {
 			Logs.error("Communication error \nServer response :" + message.toNetFormat());
 			return null;
@@ -126,14 +133,14 @@ public class DataProvider {
 
 	private void connect() {
 		if (token == null) {
-			System.out.println("The first time you connect, you have to choose a user name. \n connect [user name]");
+			gui.println("The first time you connect, you have to choose a user name. \n connect [user name]");
 			return;
 		}
 		Message message = new Message(Message.MessageType.CONNECT, new String[] { token });
 		service.askFor(message).thenAccept(m -> {
 			basicRequest(m, Message.MessageType.CONNECT_OK, Message.MessageType.CONNECT_KO,
-					v -> System.out.println("Connected! Welcome back " + userName),
-					v -> System.out.println("Connection refused by the server"));
+					v -> gui.println("Connected! Welcome back " + userName),
+					v -> gui.println("Connection refused by the server"));
 		}).join();
 	}
 
@@ -151,8 +158,8 @@ public class DataProvider {
 				basicRequest(m, Message.MessageType.CONNECT_OK, Message.MessageType.CONNECT_KO, v -> {
 					this.token = "#" + m.getArgs()[0];
                     writeTokenInDisk(this.userName,this.token);
-                    System.out.println("Connected! Welcome back " + userName + "\nYour token is : " + token);
-				}, v -> System.out.println("Connection refused by the server"));
+                    gui.println("Connected! Welcome back " + userName + "\nYour token is : " + token);
+				}, v -> gui.println("Connection refused by the server"));
 			}
 		}).join();
 	}
@@ -162,7 +169,7 @@ public class DataProvider {
 	 */
 	public void disconnect() {
 		service.send(new Message(Message.MessageType.DISCONNECT));
-		System.out.println("Disconnected.");
+		gui.println("Disconnected.");
 		System.exit(0);
 	}
 
@@ -177,7 +184,7 @@ public class DataProvider {
 			ProductViewer.displayProducts(answer.getArgs());
 		};
 		Consumer<Message> failBehaviour = answer -> {
-			System.out.println("Sorry this domain doesn't exist");
+			gui.println("Sorry this domain doesn't exist");
 		};
 		service.askFor(message).thenAccept(answer -> {
 			basicRequest(answer, Message.MessageType.SEND_ANC_OK, Message.MessageType.SEND_ANC_KO, successBehavior,
@@ -192,10 +199,10 @@ public class DataProvider {
 		Message message = new Message(Message.MessageType.REQUEST_OWN_ANC);
 		var answer = service.askFor(message);
 		Consumer<Message> successBehavior = m -> {
-			System.out.println("My posts are :");
+			gui.println("My posts are :");
 			ProductViewer.displayProducts(m.getArgs());
 		};
-		Consumer<Message> failBehavior = m -> System.out.println("Post not found");
+		Consumer<Message> failBehavior = m -> gui.println("Post not found");
 		answer.thenAccept(m -> basicRequest(m, Message.MessageType.SEND_OWN_ANC_OK, Message.MessageType.SEND_OWN_ANC_KO,
 				successBehavior, failBehavior)).join();
 	}
@@ -208,8 +215,8 @@ public class DataProvider {
 	public void postAnc(String[] annonce) {
 		Message message = new Message(Message.MessageType.POST_ANC, annonce);
 		var answer = service.askFor(message);
-		Consumer<Message> successBehavior = m -> System.out.println("Announce posted !");
-		Consumer<Message> failBehavior = m -> System.out.println("The server refused your annonce, sorry");
+		Consumer<Message> successBehavior = m -> gui.println("Announce posted !");
+		Consumer<Message> failBehavior = m -> gui.println("The server refused your annonce, sorry");
 		answer.thenAcceptAsync(m -> basicRequest(m, Message.MessageType.POST_ANC_OK, Message.MessageType.POST_ANC_KO,
 				successBehavior, failBehavior)).join();
 	}
@@ -222,8 +229,8 @@ public class DataProvider {
 	public void updateAnc(String[] annonce) {
 		Message message = new Message(Message.MessageType.MAJ_ANC, annonce);
 		var answer = service.askFor(message);
-		Consumer<Message> successBehavior = m -> System.out.println("Annonce updated !");
-		Consumer<Message> failBehavior = m -> System.out.println("The server refused your request");
+		Consumer<Message> successBehavior = m -> gui.println("Annonce updated !");
+		Consumer<Message> failBehavior = m -> gui.println("The server refused your request");
 		answer.thenAcceptAsync(m -> basicRequest(m, Message.MessageType.MAJ_ANC_OK, Message.MessageType.MAJ_ANC_KO,
 				successBehavior, failBehavior)).join();
 	}
@@ -236,8 +243,8 @@ public class DataProvider {
 	public void deleteAnc(String ancId) {
 		Message message = new Message(Message.MessageType.DELETE_ANC, new String[] { ancId });
 		var answer = service.askFor(message);
-		Consumer<Message> successBehavior = m -> System.out.println("Post succesfuly deleted");
-		Consumer<Message> failBehavior = m -> System.out.println("The server refused your request");
+		Consumer<Message> successBehavior = m -> gui.println("Post succesfuly deleted");
+		Consumer<Message> failBehavior = m -> gui.println("The server refused your request");
 		answer.thenAcceptAsync(m -> basicRequest(m, Message.MessageType.DELETE_ANC_OK, Message.MessageType.DELETE_ANC_KO,
 				successBehavior, failBehavior)).join();
 	}
@@ -249,10 +256,10 @@ public class DataProvider {
 		Message message = new Message(Message.MessageType.REQUEST_DOMAIN);
 		var answer = service.askFor(message);
 		Consumer<Message> successBehavior = m -> {
-			System.out.println("Here your domains :");
+			gui.println("Here your domains :");
 			ProductViewer.printDomains(m.getArgs());
 		};
-		Consumer<Message> failBehavior = m -> System.out.println("The server can't retrieve domains");
+		Consumer<Message> failBehavior = m -> gui.println("The server can't retrieve domains");
 		answer.thenAcceptAsync(m -> basicRequest(m, Message.MessageType.SEND_DOMAINE_OK,
 				Message.MessageType.SEND_DOMAINE_OK, successBehavior, failBehavior)).join();
 	}
