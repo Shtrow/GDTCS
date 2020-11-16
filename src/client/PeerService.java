@@ -11,6 +11,7 @@ import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.lang.Runnable;
 import java.util.LinkedList;
 import java.util.Arrays;
@@ -47,10 +48,10 @@ public class PeerService implements Runnable {
 			Message m = Message.stringToMessage(new String(buffer));
 			m.setAddress(inPacket.getAddress(), inPacket.getPort());
 			return m;
-		} catch(SocketException e) {
+		} catch(SocketTimeoutException e) {
 			Logs.log("Socket timeout -> reading");
 		} catch(Exception e) {
-			Logs.error("Fatal error -> exception get for reading: " + e.getStackTrace());
+			Logs.error("Fatal error -> exception get for reading: " + e);
 			System.exit(1);
 		}
 		return null;

@@ -12,13 +12,15 @@ import java.util.IllegalFormatException;
  */
 public class Client {
 	public static void main(String[] args) throws IOException {
-		if (args.length == 3) {
+		if (args.length == 4) {
 			boolean debug = (args[0] != null && args[0].equals("no")) ? false : true;
 			String addr = args[1];
 			int port = 1027;
+			int port_udp = 7201;
 
 			try {
 				port = Integer.parseInt(args[2]);
+				port_udp = Integer.parseInt(args[3]);
 			} catch (IllegalFormatException e) {
 				System.out.println("Port format error");
 			}
@@ -27,7 +29,9 @@ public class Client {
 			}
 
 			client.GDTService GDTService = new GDTService(addr, port);
+			client.PeerService peerService = new PeerService(port_udp, 3000);
 			GDTService.run();
+			new Thread(peerService).start();
 			DataProvider dataProvider = new DataProvider(GDTService);
 			Controller c = new Controller(dataProvider);
 			c.run();

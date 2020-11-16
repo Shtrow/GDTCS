@@ -9,6 +9,7 @@ VERSION="1.0"
 SERVER_PORT ?= "1027"
 GDTP_port ?= "1027"
 GDTP_addr ?= "127.0.0.1"
+GDTP_udp_port ?= "7201"
 DEBUG ?= "no"
 
 all: compile_client compile_server
@@ -34,7 +35,7 @@ server: compile_server
 
 client: compile_client
 	@printf "Run client.\n"
-	java -cp src client.Client  $(DEBUG) $(GDTP_addr) $(GDTP_port)
+	java -cp src client.Client  $(DEBUG) $(GDTP_addr) $(GDTP_port) $(GDTP_udp_port)
 
 clean_common:
 	@printf "Clean_common.\n"
