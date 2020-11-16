@@ -1,4 +1,4 @@
-package test;
+package client.gui;
 
 import com.googlecode.lanterna.gui2.BorderLayout;
 import com.googlecode.lanterna.gui2.Interactable;
