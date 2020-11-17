@@ -124,7 +124,7 @@ public  class GUI implements Runnable {
                 }
             case "post":
                 if (tokens.length < 5)
-                    return () -> createAnnonceGUI(true);
+                    return () -> createAnnonceGUI(null);
 //                    return () -> dataProvider.postAnc(createAnnonceHelper(true));
                 else {
                     return (() -> dataProvider.postAnc(Arrays.copyOfRange(tokens, 1, tokens.length)));
@@ -134,9 +134,7 @@ public  class GUI implements Runnable {
                     return () -> {
                         String[] l = new String[5];
                         l[0] = tokens[1];
-                        String[] b = createAnnonceHelper(false);
-                        System.arraycopy(b, 0, l, 1, 4);
-                        dataProvider.updateAnc(l);
+                        createAnnonceGUI(tokens[1]);
                     };
                 else if (tokens.length < 5)
                     return missingArg;
@@ -177,8 +175,9 @@ public  class GUI implements Runnable {
         println(st);
     }
 
-    private void createAnnonceGUI(boolean newEntry){
-        BasicWindow window = new BasicWindow();
+    private void createAnnonceGUI(String ancId){
+        boolean newEntry = ancId == null;
+        BasicWindow window = new BasicWindow(newEntry?"Create Annonce":"Updating "+ancId);
         Panel panel = new Panel();
         panel.setLayoutManager(new GridLayout(2));
 
@@ -197,58 +196,44 @@ public  class GUI implements Runnable {
         final TextBox price = new TextBox().addTo(panel);
 
         panel.addComponent(new EmptySpace(new TerminalSize(0, 0)));
-        new Button("Submit", () -> {
-            String[] args = new String[4];
-            args[0] = domain.getText();
-            args[1] = title.getText();
-            args[2] = description.getText();
-            args[3] = price.getText();
-            dataProvider.postAnc(args);
-            window.close();
-        }).addTo(panel);
-
         panel.addComponent(new EmptySpace(new TerminalSize(0, 0)));
+
+        new Button("Submit", () -> {
+            String[] args;
+            if(!newEntry){
+                args = new String[]{"null", "null", "null", "null"};
+                if(!domain.getText().isEmpty()) args[0] = domain.getText();
+                if(!title.getText().isEmpty()) args[1] = title.getText();
+                if(!description.getText().isEmpty()) args[2] = description.getText();
+                if(!price.getText().isEmpty()) args[3] = price.getText();
+                String[] l = new String[5];
+                l[0] = ancId;
+                System.arraycopy(args, 0, l, 1, 4);
+                dataProvider.updateAnc(l);
+            }
+            else {
+                args = new String[4];
+                args[0] = domain.getText();
+                args[1] = title.getText();
+                args[2] = description.getText();
+                args[3] = price.getText();
+                dataProvider.postAnc(args);
+            }
+            window.close();
+        }).addTo(panel).setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
+
+
+        new Button("Cancel", window::close).addTo(panel);
+
+//        panel.addComponent(buttons);
+
+
+//        panel.addComponent(new EmptySpace(new TerminalSize(0, 0)));
         panel.addComponent(lblOutput);
 
         // Create window to hold the panel
         window.setComponent(panel);
         gui.addWindowAndWait(window);
-    }
-
-    private String[] createAnnonceHelper(boolean new_entry) {
-        String[] args = new String[4];
-        Scanner scanner = new Scanner(System.in);
-        for (int i = 0; i < args.length; i++) {
-            switch (i) {
-                case 0:
-                    println("Please inform the domain");
-                    break;
-                case 1:
-                    println("Please inform the title");
-                    break;
-                case 2:
-                    println("Please inform the description");
-                    break;
-                case 3:
-                    println("Please inform the price");
-                    break;
-            }
-            if (!new_entry) {
-                println("(Type nothing for no information)");
-            }
-
-            String s = scanner.nextLine();
-            s.trim();
-            if (s.isEmpty()) {
-                if (!new_entry) {
-                    args[i] = "null";
-                } else {
-                    i--;
-                }
-            } else
-                args[i] = s;
-        }
-        return args;
     }
 }
 
