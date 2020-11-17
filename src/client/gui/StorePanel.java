@@ -16,7 +16,7 @@ public class StorePanel extends Panel {
         this.gui = gui;
 
         contentLabel = new Label(panelText);
-        TextBox promptBox = new PromptBox(s -> gui.currentStep.apply(s).run())
+        TextBox promptBox = new PromptBox(s -> gui.parse(s).run())
                 .setLayoutData(BorderLayout.Location.BOTTOM);
 
         this.addComponent(contentLabel.setLayoutData(BorderLayout.Location.CENTER));
