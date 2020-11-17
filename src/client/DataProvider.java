@@ -108,10 +108,23 @@ public class DataProvider {
 		}
 	}
 
-	/**
-	 * Handle the connection when you have already been connect
+
+	 /**
+	 * Handle the connection with a username and without
+	 *
+	 * @param userName the username of the user
+	 * @return the userName;
 	 */
-	public void connect() {
+	public String genericConnect(String [] tokens) {
+		if (tokens.length < 2) {
+			connect();
+		} else {
+			connect(tokens[1]);
+		}
+		return this.userName;
+	}
+
+	private void connect() {
 		if (token == null) {
 			System.out.println("The first time you connect, you have to choose a user name. \n connect [user name]");
 			return;
@@ -124,12 +137,7 @@ public class DataProvider {
 		}).join();
 	}
 
-	/**
-	 * Handle the connection with a username
-	 *
-	 * @param userName the username of the user
-	 */
-	public void connect(String userName) {
+	private void connect(String userName) {
 		this.userName = userName;
 		Message message = new Message(Message.MessageType.CONNECT, new String[] { userName });
 		service.askFor(message).thenAccept(m -> {

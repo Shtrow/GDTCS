@@ -13,12 +13,12 @@ import java.util.TreeMap;
 public class LetterBox {
 	private static LetterBox box                                = null;
 	private TreeMap<String, LinkedList<Message>> received       = null;
-	private TreeMap<Long, TreeMap<String, MessageSender>>  sent = null;
+	private TreeMap<Long, MessageSender>  sent = null;
 	private final static int MAX_ATTEMPT                        = 3;
 
 	private LetterBox() {
 		this.received = new TreeMap<String, LinkedList<Message>>();
-		this.sent = new TreeMap<Long, TreeMap<String, MessageSender>>();
+		this.sent = new TreeMap<Long, MessageSender>();
 	}
 	
 	/**
@@ -36,21 +36,15 @@ public class LetterBox {
 	/**
 	 * Adds a Message to someone into the sending list
 	 *
-	 * @param dest who you are trying to contact
 	 * @param m the message sent
 	 * @return true if it adds it with succeed
 	 */
-	public synchronized boolean addToSendingList(String dest, Message m) {
+	public synchronized boolean addToSendingList(Message m) {
 		String[] args = m.getArgs();
 		if(args != null && args.length >= 2) {
 			try {
 				long timestamp = Long.parseLong(args[1]);
-				TreeMap<String, MessageSender> sendingList = sent.get(timestamp);
-				if(sendingList == null) {
-					sendingList = new TreeMap<String, MessageSender>();
-					sent.put(timestamp, sendingList);
-				}
-				sendingList.put(dest, new MessageSender(m));
+				sent.put(timestamp, new MessageSender(m));
 				Logs.log("Insert new message -> Box)");
 				return true;
 			} catch(NumberFormatException e) {
@@ -68,25 +62,17 @@ public class LetterBox {
 	public synchronized LinkedList<Message> getSendingList() {
 		long timestamp = System.currentTimeMillis();
 		LinkedList<Message> toSend = new LinkedList<Message>();
-		for( long timestampKey : sent.keySet()) {
-			TreeMap<String, MessageSender> messages = sent.get(timestampKey);
-			if(messages != null) {
-				for(String dest : messages.keySet()) {
-					MessageSender message = messages.get(dest);
+		for(long timestampKey : sent.keySet()) {
+					MessageSender message = sent.get(timestampKey);
 					if(message.next < timestamp) {
 						toSend.add(message.message);
 					}
 					message.updateAttempt();
 					if(message.attempt >= MAX_ATTEMPT) {
-						messages.remove(dest);
+						sent.remove(timestampKey);
 						continue;
 					}
-				}
 			}
-			if(messages == null || messages.size() <= 0) {
-				sent.remove(timestampKey);
-			}
-		}
 		return toSend;
 	}
 
@@ -99,17 +85,13 @@ public class LetterBox {
 	 * @return true if it acks the message else false
 	 */
 	public synchronized boolean ackMsg(Long timestamp, String dest) {
-		TreeMap<String, MessageSender> messages = sent.get(timestamp);
-		if(messages != null) {
-			MessageSender sender = messages.get(dest);
+		Logs.log("Ack a new message.");
+			MessageSender sender = sent.get(timestamp);
 			if(sender != null) {
-				messages.remove(dest);
-				if(messages.size() <= 0) {
-					sent.remove(timestamp);
-				}
+				Logs.log("Ack a new message find timestamp => ACK");
+				sent.remove(timestamp);
 				return true;
 			}
-		}
 		return false;
 	}
 

@@ -20,6 +20,7 @@ public class Controller implements Runnable {
 	private final PeerList ipBook;
 	private final LetterBox box;
 	private final Runnable missingArg = () -> System.out.println("Missing arguments");
+	private String username;
 
 	/**
 	 * Constructor
@@ -69,21 +70,7 @@ public class Controller implements Runnable {
 			case "own":
 				return dataProvider::getMyAn;
 			case "connect":
-				if (tokens.length < 2) {
-					return dataProvider::connect;
-				} else {
-					return () -> {
-						dataProvider.connect(tokens[1]);
-					};
-				}
-			case "delete":
-				if (tokens.length < 2) {
-					return missingArg;
-				} else {
-					return () -> {
-						dataProvider.deleteAnc(tokens[1]);
-					};
-				}
+					return () -> this.username = dataProvider.genericConnect(tokens);
 			case "post":
 				if (tokens.length < 5)
 					return () -> dataProvider.postAnc(createAnnonceHelper(true));
@@ -150,7 +137,7 @@ public class Controller implements Runnable {
 	}
 
 	private void sendMsg(boolean anc, String[] tokens) {
-		if(tokens != null && tokens.length == 3) {
+		if(username != null && tokens != null && tokens.length == 3) {
 			String dest = null;
 			InetSocketAddress addr = null;
 			if(anc) {
@@ -158,7 +145,7 @@ public class Controller implements Runnable {
 				if(m != null && m.getArgs() != null && m.getArgs().length == 2) {
 					dest = m.getArgs()[1];
 					addr = new InetSocketAddress(m.getArgs()[0], 7201);
-					ipBook.addOrUpdate(m.getArgs()[1], addr);
+					ipBook.addOrUpdate(dest, addr);
 					Logs.log("New adress added with success");
 				} else {
 					Logs.warning("The server didn't find the address!");
@@ -172,9 +159,9 @@ public class Controller implements Runnable {
 					return;
 				}
 			}
-			String[] args = prepareMsg(dest, tokens[2]);
+			String[] args = prepareMsg(username, tokens[2]);
 			Message request = new Message(Message.MessageType.MSG, args, addr);
-			box.addToSendingList(dest, request);
+			box.addToSendingList(request);
 			Logs.log("Inserted new message ->");
 		}
 	}

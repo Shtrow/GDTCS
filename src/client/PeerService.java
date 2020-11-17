@@ -22,7 +22,7 @@ import java.io.IOException;
  *
  * @author Marais-Viau
  */
-public class PeerService implements Runnable {
+public class PeerService extends Thread {
 	private DatagramSocket s = null;
 	private PeerList index = null;
 	private LetterBox box = null;
@@ -40,12 +40,22 @@ public class PeerService implements Runnable {
 		}
 	}
 
+	private String removeDot(byte[] buffer) {
+		String[] args = new String(buffer).split("\n.\n");
+		return (args.length >= 2) ? args[0]:null;
+	}
+
 	private Message readWithTimeout() {
 		try {
 			byte[] buffer = new byte[PACKAGE_LEN];
 			DatagramPacket inPacket = new DatagramPacket(buffer, buffer.length);
 			s.receive(inPacket);
-			Message m = Message.stringToMessage(new String(buffer));
+			String cleanBuffer = removeDot(buffer);
+			if(cleanBuffer == null) {
+				Logs.warning("Missing point -> drop");
+				return null;
+			}
+			Message m = Message.stringToMessage(cleanBuffer);
 			m.setAddress(inPacket.getAddress(), inPacket.getPort());
 			return m;
 		} catch(SocketTimeoutException e) {
@@ -87,7 +97,7 @@ public class PeerService implements Runnable {
 			args[1]
 		};
 		Message respond = new Message(Message.MessageType.MSG_ACK, argsSender, m.getAddress());
-		box.addToSendingList(args[0], respond);
+		box.addToSendingList(respond);
 	}
 
 	private void printArgs(Message m) {
