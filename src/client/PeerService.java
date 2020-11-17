@@ -67,6 +67,7 @@ public class PeerService implements Runnable {
 	}
 
 	private void handleAck(Message m, String[] args, long timestamp) {
+		Logs.log("Handling ack");
 		if(index.addOrUpdate(args[0], null)) {
 			Logs.log("Add a new user for handling");
 		}
@@ -76,6 +77,7 @@ public class PeerService implements Runnable {
 	}
 
 	private void handleMsg(Message m, String[] args) {
+		Logs.log("Handling msg");
 		if(index.addOrUpdate(args[0], m.getAddress())) {
 			Logs.log("Someone new is trying to reach you");
 		}
@@ -84,12 +86,23 @@ public class PeerService implements Runnable {
 			args[0],
 			args[1]
 		};
-		Message respond = new Message(Message.MessageType.MSG_ACK, args, m.getAddress());
+		Message respond = new Message(Message.MessageType.MSG_ACK, argsSender, m.getAddress());
 		box.addToSendingList(args[0], respond);
 	}
 
+	private void printArgs(Message m) {
+		String [] args = m.getArgs();
+		String display = "";
+		if(args != null) {
+			for(String s : args) {
+				display += "|->" + s + "\n";
+			}
+		}
+		Logs.log("Handler receive\n<"+m.getType()+">"+"\n"+display);
+	}
+
 	private void handle(Message m) {
-		Logs.log("Treat message ->\n" + m.toString());
+		printArgs(m);
 		if(m.getType() == Message.MessageType.MSG && m.getArgs().length >= 3 ) {
 			String[] args = m.getArgs();
 			if(getTimestamp(args[1])== -1) return;
@@ -119,6 +132,7 @@ public class PeerService implements Runnable {
 			int port = ipPort.getPort();
 			DatagramPacket outPacket = new DatagramPacket(buffer, buffer.length, ip, port);
 			try {
+				Logs.log("Sending packet: " + outPacket);
 				s.send(outPacket);
 			} catch(IOException e) {
 				Logs.warning("Can't send the message -> next");

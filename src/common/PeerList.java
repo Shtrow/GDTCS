@@ -92,6 +92,7 @@ public class PeerList {
 		public void run() {
 			while(true) {
 				try {
+					Logs.log("Garbage collection.");
 					Thread.sleep(TIME_REMOVE);
 				} catch(InterruptedException e) {
 					Logs.error("Garbage collector down -> exit.");

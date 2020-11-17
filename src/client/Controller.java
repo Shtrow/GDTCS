@@ -159,6 +159,7 @@ public class Controller implements Runnable {
 					dest = m.getArgs()[1];
 					addr = new InetSocketAddress(m.getArgs()[0], 7201);
 					ipBook.addOrUpdate(m.getArgs()[1], addr);
+					Logs.log("New adress added with success");
 				} else {
 					Logs.warning("The server didn't find the address!");
 					return;
@@ -173,7 +174,8 @@ public class Controller implements Runnable {
 			}
 			String[] args = prepareMsg(dest, tokens[2]);
 			Message request = new Message(Message.MessageType.MSG, args, addr);
-			box.insertInLetterBox(dest, request);
+			box.addToSendingList(dest, request);
+			Logs.log("Inserted new message ->");
 		}
 	}
 

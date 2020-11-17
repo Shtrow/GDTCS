@@ -42,7 +42,7 @@ public class LetterBox {
 	 */
 	public synchronized boolean addToSendingList(String dest, Message m) {
 		String[] args = m.getArgs();
-		if(args != null && args.length >= 3) {
+		if(args != null && args.length >= 2) {
 			try {
 				long timestamp = Long.parseLong(args[1]);
 				TreeMap<String, MessageSender> sendingList = sent.get(timestamp);
@@ -51,6 +51,7 @@ public class LetterBox {
 					sent.put(timestamp, sendingList);
 				}
 				sendingList.put(dest, new MessageSender(m));
+				Logs.log("Insert new message -> Box)");
 				return true;
 			} catch(NumberFormatException e) {
 				Logs.warning("Can't parse message timestamp.");
