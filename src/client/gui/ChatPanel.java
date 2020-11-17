@@ -17,7 +17,6 @@ public class ChatPanel extends Panel {
     public ComboBox<String> getUserList() {
         return comboBox;
     }
-
     private ComboBox<String> comboBox;
     private HashMap <String,String> messageHistory = new HashMap<>();
     private Label text = new Label("Welcome to the GDT Chat!");
@@ -53,7 +52,7 @@ public class ChatPanel extends Panel {
         });
     }
 
-    public void updatePeerList(){
+    private void updatePeerList(){
         peerListToComboBox();
         if(gui.getIpBook().getPeerList().isEmpty()) {
             Logs.log("No contact yet");
@@ -65,7 +64,7 @@ public class ChatPanel extends Panel {
         this.comboBox = new ComboBox<String>(gui.getIpBook().getPeerList());
     }
 
-    public void textAppend(String s){
+    private void textAppend(String s){
         text.setText(text.getText() + "\n" + s);
     }
 
