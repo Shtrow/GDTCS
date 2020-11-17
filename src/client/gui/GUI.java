@@ -24,14 +24,14 @@ import java.util.regex.Pattern;
 
 public  class GUI implements Runnable {
 
-    StorePanel storePanel;
-    InputStream in;
-    DataProvider dataProvider;
-    DefaultTerminalFactory defaultTerminalFactory;
-    WindowBasedTextGUI gui;
+    private StorePanel storePanel;
+    private InputStream in;
+    private final DataProvider dataProvider;
+    private DefaultTerminalFactory defaultTerminalFactory;
+    private WindowBasedTextGUI gui;
     private final PeerList ipBook;
     private final LetterBox box;
-    Panel chatPanel;
+    private Panel chatPanel;
 
     public GUI(DataProvider dataProvider) {
         this.dataProvider = dataProvider;
@@ -65,11 +65,18 @@ public  class GUI implements Runnable {
         chatPanel = new ChatPanel(this);
         chatPanel.setLayoutData(layoutData).withBorder(Borders.singleLine("Chat"));
         mainPanel.addComponent(chatPanel);
-
+        header();
         window.setComponent(mainPanel);
         gui.addWindowAndWait(window);
-        header();
 
+        try {
+            if (mainPrompt != null) {
+                mainPrompt.stopScreen();
+                dataProvider.disconnect();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void print(String s) {
@@ -101,7 +108,7 @@ public  class GUI implements Runnable {
         String head = "********************************\n" + "* Good Duck Transport Protocol *\n"
                 + "*        Client Utility        *\n" + "*       By Marais - Viau       *\n"
                 + "********************************\n";
-        println(head);
+        this.println(head);
     }
 
     public Runnable parse(String command) {
@@ -156,7 +163,7 @@ public  class GUI implements Runnable {
             case "ancs":
                 return () -> dataProvider.getProductByDomain(tokens[1]);
             case "ip":
-                return () -> talkTo(dataProvider.requestIP(tokens[1]));
+                return () -> dataProvider.requestIP(tokens[1]);
             case "send_msg_to":
                 return () -> sendMsg(false, tokens);
             case "talk":
@@ -169,11 +176,6 @@ public  class GUI implements Runnable {
                 return () -> println("Command not found");
         }
     };
-
-    private void talkTo(Message requestIP) {
-        if(requestIP == null) println("Connection to user failed");
-
-    }
 
 
     public DataProvider getDataProvider() {
@@ -196,6 +198,7 @@ public  class GUI implements Runnable {
                 "- own                  Request your \"annonces\"\n" +
                 "- post                 Post an \"annonces\" (enter interactive mode)\n" +
                 "- update [ANC ID]      Update an \"annonces\"(enter interactive mode)\n" +
+                "- talk [ANC ID]        Start a conversation with the \"annonce\" owner\n" +
                 "- ip [ANC ID]          Request the ip of the \"annonces\" owner\n" +
                 "- delete [ANC ID]      Delete an \"annonces\"";
         println(st);
