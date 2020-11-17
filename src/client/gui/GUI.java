@@ -6,10 +6,15 @@ import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
+import common.LetterBox;
+import common.Logs;
+import common.Message;
+import common.PeerList;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
@@ -20,17 +25,18 @@ import java.util.regex.Pattern;
 public  class GUI implements Runnable {
 
     StorePanel storePanel;
-    PrintStream out;
     InputStream in;
-    Controller controller;
     DataProvider dataProvider;
-    Function<String,Runnable> currentStep;
     DefaultTerminalFactory defaultTerminalFactory;
     WindowBasedTextGUI gui;
+    private final PeerList ipBook;
+    private final LetterBox box;
+    Panel chatPanel;
 
     public GUI(DataProvider dataProvider) {
         this.dataProvider = dataProvider;
-        this.currentStep = mainParser;
+        this.ipBook = PeerList.get();
+        this.box = LetterBox.get();
     }
 
     @Override
@@ -54,9 +60,9 @@ public  class GUI implements Runnable {
 
         LayoutData layoutData = GridLayout.createLayoutData(GridLayout.Alignment.FILL, GridLayout.Alignment.FILL, true, true);
         storePanel = new StorePanel(this);
-        storePanel.setLayoutData(layoutData).withBorder(Borders.singleLine("Store"));
+        storePanel.setLayoutData(layoutData).withBorder(Borders.doubleLine("Store"));
         mainPanel.addComponent(storePanel);
-        Panel chatPanel = new ChatPanel();
+        chatPanel = new ChatPanel(this);
         chatPanel.setLayoutData(layoutData).withBorder(Borders.singleLine("Chat"));
         mainPanel.addComponent(chatPanel);
 
@@ -98,7 +104,7 @@ public  class GUI implements Runnable {
         println(head);
     }
 
-    Function<String,Runnable> mainParser = command -> {
+    public Runnable parse(String command) {
         String[] tokens = command.split("\\s+");
         if (tokens.length < 1)
             return () -> {
@@ -150,7 +156,11 @@ public  class GUI implements Runnable {
             case "ancs":
                 return () -> dataProvider.getProductByDomain(tokens[1]);
             case "ip":
-                return () -> dataProvider.requestIP(tokens[1]);
+                return () -> talkTo(dataProvider.requestIP(tokens[1]));
+            case "send_msg_to":
+                return () -> sendMsg(false, tokens);
+            case "talk":
+                return () -> sendMsg(true, tokens);
             case "":
                 return () -> println("");
             case "help":
@@ -160,7 +170,23 @@ public  class GUI implements Runnable {
         }
     };
 
+    private void talkTo(Message requestIP) {
+        if(requestIP == null) println("Connection to user failed");
 
+    }
+
+
+    public DataProvider getDataProvider() {
+        return dataProvider;
+    }
+
+    public PeerList getIpBook() {
+        return ipBook;
+    }
+
+    public LetterBox getBox() {
+        return box;
+    }
 
     private void displayHelp() {
         String st = "- connect              Reconnect to the server\n" +
@@ -221,19 +247,50 @@ public  class GUI implements Runnable {
             }
             window.close();
         }).addTo(panel).setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
-
-
         new Button("Cancel", window::close).addTo(panel);
-
-//        panel.addComponent(buttons);
-
-
-//        panel.addComponent(new EmptySpace(new TerminalSize(0, 0)));
         panel.addComponent(lblOutput);
-
-        // Create window to hold the panel
         window.setComponent(panel);
         gui.addWindowAndWait(window);
     }
+
+    private String[] prepareMsg(String dest, String msg) {
+        String[] msgTable = msg.split("\n");
+        String[] args = new String[msgTable.length + 2];
+        args[0] = dest;
+        args[1] = Long.valueOf(System.currentTimeMillis()).toString();
+        for(int i = 0 ; i < msgTable.length ; i++) {
+            args[i+2] = msgTable[i];
+        }
+        return args;
+    }
+
+    public void sendMsg(boolean anc, String[] tokens) {
+        if(tokens != null && tokens.length == 3) {
+            String dest = null;
+            InetSocketAddress addr = null;
+            if(anc) {
+                Message m = dataProvider.requestIP(tokens[1]);
+                if(m != null && m.getArgs() != null && m.getArgs().length == 2) {
+                    dest = m.getArgs()[1];
+                    addr = new InetSocketAddress(m.getArgs()[0], 7201);
+                    ipBook.addOrUpdate(m.getArgs()[1], addr);
+                } else {
+                    Logs.warning("The server didn't find the address!");
+                    return;
+                }
+            } else {
+                dest = tokens[1];
+                addr = ipBook.getIp(dest);
+                if(addr == null) {
+                    Logs.warning("Warning this person can't be found anymore.");
+                    return;
+                }
+            }
+            String[] args = prepareMsg(dest, tokens[2]);
+            Message request = new Message(Message.MessageType.MSG, args, addr);
+            box.insertInLetterBox(dest, request);
+        }
+    }
+
 }
 
