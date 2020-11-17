@@ -55,7 +55,7 @@ public class DataProvider {
 			return null;
 		} else if (message.getType() == Message.MessageType.NOT_CONNECTED) {
 			Logs.warning("Communication error \nServer response :" + message.toNetFormat());
-			System.out.println("You need to be connected first\n");
+			gui.println("You need to be connected first\n");
 			return null;
 		} else if (message.getType() == Message.MessageType.UNKNOWN_REQUEST) {
 			Logs.error("Unknown Request");
@@ -152,8 +152,8 @@ public class DataProvider {
 					v -> {
 						this.token = "#" + m.getArgs()[0];
 						writeTokenInDisk(this.userName,this.token);
-						System.out.println("Connected! Welcome " + userName + "\nYour token is : " + token);
-					}, v -> System.out.println("Connection refused by the server"));
+						gui.println("Connected! Welcome " + userName + "\nYour token is : " + token);
+					}, v -> gui.println("Connection refused by the server"));
 			if (check == null) {
 				basicRequest(m, Message.MessageType.CONNECT_OK, Message.MessageType.CONNECT_KO, v -> {
 					this.token = "#" + m.getArgs()[0];

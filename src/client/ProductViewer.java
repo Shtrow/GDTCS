@@ -98,16 +98,17 @@ public class ProductViewer {
 	 */
 	public static void printDomains(String[] domains) {
 		String final_s = "";
+		String content_s = "";
 		int gateSize = Arrays.stream(domains).mapToInt(String::length).sum() + domains.length - 1;
-		printGate(gateSize);
-		gui.print("+");
+		final_s += printGate(gateSize);
+		final_s += "+";
 		for (String s : domains) {
-			final_s += "|" + s;
+			content_s += "|" + s;
 		}
-		gui.println("\n" + final_s + "|");
-		printGate(gateSize);
-		gui.println("+");
-
+		final_s += "\n" + content_s + "|";
+		final_s += "\n"+printGate(gateSize);
+		final_s += "+";
+		gui.println(final_s);
 	}
 
 	private static String printGate(int size) {
