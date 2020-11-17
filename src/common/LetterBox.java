@@ -66,6 +66,14 @@ public class LetterBox {
 					MessageSender message = sent.get(timestampKey);
 					if(message.next < timestamp) {
 						toSend.add(message.message);
+						if(message.message.getType() == Message.MessageType.MSG_ACK) {
+							String[] args = message.message.getArgs();
+							try {
+								sent.remove(Long.parseLong(args[0]));
+							} catch(Exception e) {
+								Logs.warning("Can't parse long in getSend");
+							}
+						}
 					}
 					message.updateAttempt();
 					if(message.attempt >= MAX_ATTEMPT) {
