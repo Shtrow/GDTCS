@@ -163,7 +163,12 @@ public  class GUI implements Runnable {
             case "ancs":
                 return () -> dataProvider.getProductByDomain(tokens[1]);
             case "ip":
-                return () -> dataProvider.requestIP(tokens[1]);
+                if(tokens.length == 2){
+                    return () -> {
+                        Message ipMessage = dataProvider.requestIP(tokens[1]);
+                        println(ipMessage.toNetFormat());
+                    };
+                }
             case "send_msg_to":
                 return () -> sendMsg(false, tokens);
             case "talk":
