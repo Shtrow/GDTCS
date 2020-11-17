@@ -57,7 +57,7 @@ public class PromptTest {
 //        promptPanel.addComponent(submitButton);
         contentPanel.addComponent(promptPanel.setLayoutData(BorderLayout.Location.BOTTOM));
         mainPanel.addComponent(contentPanel.setLayoutData(GridLayout.createHorizontallyFilledLayoutData()).withBorder(Borders.singleLine("Store")));
-        mainPanel.addComponent(new ChatPanel().setLayoutData(GridLayout.createHorizontallyFilledLayoutData()).withBorder(Borders.singleLine("Chat")));
+//        mainPanel.addComponent(new ChatPanel().setLayoutData(GridLayout.createHorizontallyFilledLayoutData()).withBorder(Borders.singleLine("Chat")));
 
 
         win1.setComponent(mainPanel);
