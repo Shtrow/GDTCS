@@ -71,7 +71,7 @@ public class LetterBox {
 							try {
 								sent.remove(Long.parseLong(args[1]));
 							} catch(Exception e) {
-								Logs.warning("Can't parse long for ack " + args[1] + "-> keep it";
+								Logs.warning("Can't parse long for ack " + args[1] + "-> keep it");
 							}
 						}
 					}
@@ -126,7 +126,26 @@ public class LetterBox {
 	 */
 	public synchronized LinkedList<Message> getNewMsgFor(String sender) {
 		LinkedList<Message> messages = received.get(sender);
-		received.remove(sender);
+		if(received.size() > 0) {
+			received.remove(sender);
+		}
+		return messages;
+	}
+
+	/**
+	 * Gets the list of all the messages received
+	 *
+	 * @return the list of all the messages received, return null if empty
+	 */
+	public synchronized LinkedList<Message> getAllNewMsg() {
+		LinkedList<Message> messages = new LinkedList<Message>();
+		for(String sender: received.keySet()) {
+			LinkedList<Message> senderMsg = received.get(sender);
+			if(senderMsg != null && received.size() > 0) {
+				messages.addAll(senderMsg);
+				received.remove(sender);
+			}
+		}
 		return messages;
 	}
 
