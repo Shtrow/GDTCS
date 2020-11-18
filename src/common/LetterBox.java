@@ -45,7 +45,7 @@ public class LetterBox {
 			try {
 				long timestamp = Long.parseLong(args[1]);
 				sent.put(timestamp, new MessageSender(m));
-				Logs.log("Insert new message -> Box)");
+				Logs.log("Insert new message -> Box");
 				return true;
 			} catch(NumberFormatException e) {
 				Logs.warning("Can't parse message timestamp.");

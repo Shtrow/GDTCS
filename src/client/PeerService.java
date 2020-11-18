@@ -111,6 +111,10 @@ public class PeerService extends Thread {
 
 	private void handle(Message m) {
 		printArgs(m);
+		if(m.getArgs() == null){
+			Logs.warning("Can't handle message null -> drop");
+			return;
+		}
 		if(m.getType() == Message.MessageType.MSG && m.getArgs().length >= 3 ) {
 			String[] args = m.getArgs();
 			if(getTimestamp(args[1])== -1) return;
