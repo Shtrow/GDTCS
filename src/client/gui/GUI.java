@@ -32,6 +32,7 @@ public  class GUI implements Runnable {
     private final PeerList ipBook;
     private final LetterBox box;
     private Panel chatPanel;
+    private String username;
 
     public GUI(DataProvider dataProvider) {
         this.dataProvider = dataProvider;
@@ -120,13 +121,7 @@ public  class GUI implements Runnable {
             case "own":
                 return dataProvider::getMyAn;
             case "connect":
-                if (tokens.length < 2) {
-                    return dataProvider::connect;
-                } else {
-                    return () -> {
-                        dataProvider.connect(tokens[1]);
-                    };
-                }
+                return () -> this.username = dataProvider.genericConnect(tokens);
             case "delete":
                 if (tokens.length < 2) {
                     return missingArg;
@@ -172,7 +167,9 @@ public  class GUI implements Runnable {
             case "send_msg_to":
                 return () -> sendMsg(false, tokens);
             case "talk":
-                return () -> sendMsg(true, tokens);
+                if (tokens.length <2) return () -> {};
+                var args = new String[]{tokens[0],tokens[1], "Bonjour! Je souhaiterais converser avec vous si vous le voulez bien."};
+                return () -> sendMsg(true,args);
             case "":
                 return () -> println("");
             case "help":
@@ -272,8 +269,8 @@ public  class GUI implements Runnable {
         return args;
     }
 
-    public void sendMsg(boolean anc, String[] tokens) {
-        if(tokens != null && tokens.length == 3) {
+    void sendMsg(boolean anc, String[] tokens) {
+        if(username != null && tokens != null && tokens.length == 3) {
             String dest = null;
             InetSocketAddress addr = null;
             if(anc) {
@@ -281,22 +278,24 @@ public  class GUI implements Runnable {
                 if(m != null && m.getArgs() != null && m.getArgs().length == 2) {
                     dest = m.getArgs()[1];
                     addr = new InetSocketAddress(m.getArgs()[0], 7201);
-                    ipBook.addOrUpdate(m.getArgs()[1], addr);
+                    ipBook.addOrUpdate(dest, addr);
+                    Logs.log("New adress added with success");
                 } else {
-                    Logs.warning("The server didn't find the address!");
+                    Logs.warning("The server didn't find the address -> drop");
                     return;
                 }
             } else {
                 dest = tokens[1];
                 addr = ipBook.getIp(dest);
                 if(addr == null) {
-                    Logs.warning("Warning this person can't be found anymore.");
+                    Logs.warning("Warning this person can't be found anymore. -> drop");
                     return;
                 }
             }
-            String[] args = prepareMsg(dest, tokens[2]);
+            String[] args = prepareMsg(username, tokens[2]);
             Message request = new Message(Message.MessageType.MSG, args, addr);
-            box.insertInLetterBox(dest, request);
+            box.addToSendingList(request);
+            Logs.log("Insert a new message to send" );
         }
     }
 

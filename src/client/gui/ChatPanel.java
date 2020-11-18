@@ -12,19 +12,19 @@ import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ChatPanel extends Panel {
     public ComboBox<String> getUserList() {
         return comboBox;
     }
     private ComboBox<String> comboBox;
-    private HashMap <String,String> messageHistory = new HashMap<>();
+    private volatile ConcurrentHashMap<String,String> messageHistory = new ConcurrentHashMap<>();
     private Label text = new Label("Welcome to the GDT Chat!");
     private GUI gui;
     private Panel chatPanel = new Panel(new BorderLayout());
     private Panel blankPanel = new Panel().addComponent(new EmptySpace(new TerminalSize(0,0)));
     private Panel currentPanel = chatPanel;
-
     public ChatPanel(GUI gui){
         super(new GridLayout(1));
         this.addComponent(currentPanel.setLayoutData(GridLayout.createLayoutData(
@@ -37,8 +37,15 @@ public class ChatPanel extends Panel {
 
 //        Panel bottomPanel = new Panel(new GridLayout(2));
         PromptBox promptBox = new PromptBox(s -> {
-            String[] args = {comboBox.getSelectedItem(),s};
-            sendMsg(false, args);
+            synchronized (messageHistory){
+                String user = comboBox.getSelectedItem();
+                String[] args = {"send_msg", user,s};
+                    String hist = messageHistory.getOrDefault(user,"");
+                    String newMessage = hist + "\n" + "[me] " + s;
+                    messageHistory.put (user, newMessage);
+                    setText(newMessage);
+                    gui.sendMsg(false, args);
+            }
         });
         chatPanel.addComponent(comboBox.setLayoutData(BorderLayout.Location.TOP));
         chatPanel.addComponent(text.setLayoutData(BorderLayout.Location.CENTER));
@@ -48,7 +55,6 @@ public class ChatPanel extends Panel {
             if (selectedUser == null) {
                 return;
             }
-            textAppend(messageHistory.getOrDefault(selectedUser,"Welcome to the GDT Chat!"));
         });
     }
 
@@ -61,20 +67,26 @@ public class ChatPanel extends Panel {
     }
 
     private void peerListToComboBox(){
-        this.comboBox = new ComboBox<String>(gui.getIpBook().getPeerList());
+        this.comboBox.clearItems();
+        var peerList = gui.getIpBook().getPeerList();
+        peerList.forEach(this.comboBox::addItem);
     }
 
     private void textAppend(String s){
         text.setText(text.getText() + "\n" + s);
     }
 
+    private void setText(String s){
+        text.setText(s);
+    }
+
     /**
      * Thread which will update messages received
      */
     public class LetterBoxThread implements Runnable{
-        final int updateFrequency = 1000;
+        final int updateFrequency = 300;
         @Override
-        public void run() {
+        public synchronized void run() {
             //TODO Hide chat panel when there is nobody in the contact list
 //            currentPanel = (comboBox.getItemCount() == 0) ? blankPanel : chatPanel;
             var letterBox = ChatPanel.this.gui.getBox();
@@ -85,6 +97,12 @@ public class ChatPanel extends Panel {
                     e.printStackTrace();
                 }
                 Set<String> peerList = gui.getIpBook().getPeerList();
+//                var messages =  letterBox.getAllNewMsg();
+//                if(messages !=null){
+//                    messages.forEach(message -> {
+//
+//                    });
+//                }
                 peerList.forEach(s -> {
                     var messages = letterBox.getNewMsgFor(s);
                     if (messages != null){
@@ -93,10 +111,14 @@ public class ChatPanel extends Panel {
                             return stringMessage.get();
                         });
                         var stringMessage = stringMessages.reduce((s1, s2) -> s1 + "\n"+s2);
-                        stringMessage.ifPresent(value -> textAppend(messageHistory.putIfAbsent(s, value)));
+                        stringMessage.ifPresent(value -> {
+                            var new_text = messageHistory.getOrDefault(s,"")+ "\n"+value;
+                            messageHistory.put(s,new_text);
+                            setText(new_text);
+                        });
+                        updatePeerList();
                     }
                 });
-                updatePeerList();
             }
         }
     }
