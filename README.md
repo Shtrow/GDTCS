@@ -208,6 +208,22 @@ La commande à utiliser est la suivante :
 >> ip [ID ANNONCE]
 ```
 
+### Ouvrir le chat
+
+Il est possible d'ouvrir une discussion avec quelqu'un qui est connecté sur le serveur de discussion
+grâce à la commande suivante :
+
+```
+  talk [ID ANNONCE]
+```
+
+### Discuter avec quelqu'un de connecter
+
+Une fois que l'action `talk` a été faite, vous pouvez utiliser l'onglet de chat pour discuter avec la personne
+que vous voulez contacter. Cependant, si celle-ci se déconnecte, elle ne recevera plus vos messages et ceux-
+ci seront perdus.
+
+
 ## Détail de l'implémentation
 
 
@@ -303,3 +319,41 @@ Il s'agit de la classe qui écoute les requêtes entrante. À chaque nouvelle co
 Cette classe s'occupe de gérer les échanges entre le serveur et le client une fois la connexion établie. Elle lit les requêtes ligne par ligne jusqu'à voir un point. Quand elle voit celui-ci, elle transforme la requête en message et la traite via un switch pour déterminer l'action à executér. Toutes les actions néccessitent d'abord de se connecter en suivant le protocole. Sinon, le message NOT_CONNECTED est envoyé. Aussi, le protocole a été écrit de telle façon que, si la requête est inconnue, nous pouvons le spécifier au client avec lequel nous sommes connectés. Il est donc très facile d'étendre le protocole avec de nouvels en-têtes: il suffit d'écrire une nouvelle méthode est de l'ajouter au switch.
 
 Chaque "handler" possède un timeout de 12H pour couper la connexion en cas d'absence de message pendant cette durée. Dans le cas où le client se déconnecte, le serveur ferme automatiquement la connexion et retire l'utilisateur de  la liste des IP en cours de connexion.
+
+## Sécurité
+
+### Intégrité
+
+Pour s'assurer de l'identité de l'émetteur et du récepteur nous pouvons utiliser le système de HMAC.
+Cela consiste à prendre une empreinte du message que l'on va envoyer avec un token qui nous identifie.
+Le token est présent de chacun des côtés de la connexion et permet de signer les messages.
+Lorsque l'on reçoit le message, il suffit de calculer l'empreinte à nouveau et de s'assurer que c'est la même.
+Ainsi, si elle diffère, nous savons que soit le message a été modifié, soit l'utilisateur n'est pas le bon.
+Le "." dans le protocole permet de faire la distinction entre la partie HMAC et le reste.
+
+### Protocole Client-Serveur
+
+Pour sécuriser le protocole Client-Serveur et assurer la confidentialité, nous pouvons utiliser les sockets sécurisées
+fournies par TCP à travers le protocole cela nous assure la confidentialité, et HMAC l'intégrité et l'authenticité.
+Nous sommes donc bien sécurisés.
+
+### Protocole Client-Client
+
+Le protocole Pair-à-Pair requiert le passage par un serveur tierce pour faire l'échange des clefs.
+Lorsque l'on demande l'ip, on fait une demande au serveur, qui contacte les deux paires pour leurs
+indiquer les clefs qui vont être utilisées lors de l'échange. Une fois cela fait, les deux pairs
+peuvent chiffrer leurs messages grâce à ces clefs. Cela nous donne la confidentialité et HMAC nous
+donne à nouveau l'intégrité et l'authenticité. Nous sommes donc sécurisés.
+
+## Choix du protocole
+
+Pour le protocole, nous avons choisi d'utiliser TCP pour la partie Client-Server car cela permet d'assurer
+de l'intégrité de l'échange et de l'ordre dans lesquel les paquets arrivent. Même si cela peut ralentir
+le temps de récéption des informations, cela ne pose pas de soucis car il ne s'agit pas d'informations en
+temps réel.
+
+Pour la partie CLient-Client, nous avons décidé d'utiliser le procotole UDP afin d'alléger le client.
+En effet, dans le cas de TCP nous aurions dû utiliser autant de connexions qu'il y a de pairs. En outre,
+UDP nous permet d'être dans un système pair-à-pair. Enfin, la dernière raison qui nous a poussée à écrire
+le protocole en UDP est le fait qu'il s'agit d'un cours et non d'un projet professionel. C'était donc l'occasion
+de tester les technologies dans un cadre adapté.
