@@ -69,9 +69,9 @@ public class LetterBox {
 						if(message.message.getType() == Message.MessageType.MSG_ACK) {
 							String[] args = message.message.getArgs();
 							try {
-								sent.remove(Long.parseLong(args[0]));
+								sent.remove(Long.parseLong(args[1]));
 							} catch(Exception e) {
-								Logs.warning("Can't parse long in getSend");
+								Logs.warning("Can't parse long for ack " + args[1] + "-> keep it";
 							}
 						}
 					}
@@ -93,11 +93,10 @@ public class LetterBox {
 	 * @return true if it acks the message else false
 	 */
 	public synchronized boolean ackMsg(Long timestamp, String dest) {
-		Logs.log("Ack a new message.");
 			MessageSender sender = sent.get(timestamp);
 			if(sender != null) {
-				Logs.log("Ack a new message find timestamp => ACK");
 				sent.remove(timestamp);
+				Logs.log("Remove new message for " + timestamp + " -> ack");
 				return true;
 			}
 		return false;
@@ -115,6 +114,7 @@ public class LetterBox {
 			messages = new LinkedList<Message>();
 			received.put(src, messages);
 		}
+		Logs.log("Insert new message for " + src);
 		messages.add(m);
 	}
 

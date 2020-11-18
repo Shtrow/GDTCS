@@ -148,21 +148,21 @@ public class Controller implements Runnable {
 					ipBook.addOrUpdate(dest, addr);
 					Logs.log("New adress added with success");
 				} else {
-					Logs.warning("The server didn't find the address!");
+					Logs.warning("The server didn't find the address -> drop");
 					return;
 				}
 			} else {
 				dest = tokens[1];
 				addr = ipBook.getIp(dest);
 				if(addr == null) {
-					Logs.warning("Warning this person can't be found anymore.");
+					Logs.warning("Warning this person can't be found anymore. -> drop");
 					return;
 				}
 			}
 			String[] args = prepareMsg(username, tokens[2]);
 			Message request = new Message(Message.MessageType.MSG, args, addr);
 			box.addToSendingList(request);
-			Logs.log("Inserted new message ->");
+			Logs.log("Insert a new message to send" );
 		}
 	}
 

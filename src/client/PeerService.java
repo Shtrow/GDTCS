@@ -59,7 +59,7 @@ public class PeerService extends Thread {
 			m.setAddress(inPacket.getAddress(), inPacket.getPort());
 			return m;
 		} catch(SocketTimeoutException e) {
-			Logs.log("Socket timeout -> reading");
+			Logs.log("Socket timeout for reading -> OK");
 		} catch(Exception e) {
 			Logs.error("Fatal error -> exception get for reading: " + e);
 			System.exit(1);
@@ -77,17 +77,15 @@ public class PeerService extends Thread {
 	}
 
 	private void handleAck(Message m, String[] args, long timestamp) {
-		Logs.log("Handling ack");
 		if(index.addOrUpdate(args[0], null)) {
 			Logs.log("Add a new user for handling");
 		}
 		if(!box.ackMsg(timestamp, args[0])) {
-			Logs.warning("Fail to ack message");
+			Logs.warning("Fail to ack message for " + timestamp);
 		}
 	}
 
 	private void handleMsg(Message m, String[] args) {
-		Logs.log("Handling msg");
 		if(index.addOrUpdate(args[0], m.getAddress())) {
 			Logs.log("Someone new is trying to reach you");
 		}
@@ -108,7 +106,7 @@ public class PeerService extends Thread {
 				display += "|->" + s + "\n";
 			}
 		}
-		Logs.log("Handler receive\n<"+m.getType()+">"+"\n"+display);
+		Logs.log("Handler receive:\n---\n<"+m.getType()+">"+"\n"+display+"---");
 	}
 
 	private void handle(Message m) {
@@ -131,13 +129,11 @@ public class PeerService extends Thread {
 		for(Message m : box.getSendingList()) {
 			byte[] buffer = m.toNetFormat().getBytes();
 			if(buffer.length > PACKAGE_LEN) {
-				Logs.warning("Need to truncate message -> shouldn't happen");
+				Logs.warning("Need to truncate message. Wrong format -> truncate");
 				buffer = Arrays.copyOfRange(buffer, 0, PACKAGE_LEN-1);
 			}
 			InetSocketAddress ipPort = m.getAddress();
-			if(ipPort.isUnresolved()) {
-				continue;
-			}
+			if(ipPort.isUnresolved()) { continue; }
 			InetAddress ip = ipPort.getAddress();
 			int port = ipPort.getPort();
 			DatagramPacket outPacket = new DatagramPacket(buffer, buffer.length, ip, port);
@@ -152,6 +148,7 @@ public class PeerService extends Thread {
 
 	@Override
 	public void run() {
+		Logs.log("Peer service on -> running");
 		while(true) {
 			Message m = readWithTimeout();
 			if(m != null) {
