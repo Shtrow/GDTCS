@@ -74,7 +74,10 @@ public class PeerList {
 	 * @return the address or null if it's not found
 	 */
 	public synchronized InetSocketAddress getIp(String dest)  {
-		return addresses.get(dest);
+		if(dest != null) {
+			return addresses.get(dest);
+		}
+		return null;
 	}
 
 	private synchronized void removeOld() {

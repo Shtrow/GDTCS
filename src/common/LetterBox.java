@@ -3,6 +3,7 @@ package common;
 import common.Message;
 import java.util.LinkedList;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -12,12 +13,12 @@ import java.util.TreeMap;
  */
 public class LetterBox {
 	private static LetterBox box                                = null;
-	private TreeMap<String, LinkedList<Message>> received       = null;
+	private ConcurrentHashMap<String, LinkedList<Message>> received       = null;
 	private TreeMap<Long, MessageSender>  sent = null;
 	private final static int MAX_ATTEMPT                        = 3;
 
 	private LetterBox() {
-		this.received = new TreeMap<String, LinkedList<Message>>();
+		this.received = new ConcurrentHashMap<String, LinkedList<Message>>();
 		this.sent = new TreeMap<Long, MessageSender>();
 	}
 	

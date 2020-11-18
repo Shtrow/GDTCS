@@ -110,7 +110,6 @@ public class PeerService extends Thread {
 	}
 
 	private void handle(Message m) {
-		printArgs(m);
 		if(m.getArgs() == null){
 			Logs.warning("Can't handle message null -> drop");
 			return;
@@ -127,6 +126,7 @@ public class PeerService extends Thread {
 		} else {
 			Logs.warning("Unknow message -> drop");
 		}
+		printArgs(m);
 	}
 
 	private void sendMessages() {
