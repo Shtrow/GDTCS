@@ -43,7 +43,7 @@ clean_common:
 
 clean_client:
 	@printf "Clean client.\n"
-	rm -rf src/client/*.class
+	rm -rf src/client/{*.class,gui/*.class}
 
 clean_server:
 	@printf "Clean server. \n"
