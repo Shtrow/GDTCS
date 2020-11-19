@@ -56,13 +56,14 @@ public class GUI implements Runnable {
         hints.add(Window.Hint.EXPANDED);
         window.setHints(hints);
 
-        Panel mainPanel = new Panel(new GridLayout(2));
+        Panel mainPanel = new Panel(new BorderLayout());
 
-        LayoutData layoutData = GridLayout.createLayoutData(GridLayout.Alignment.FILL, GridLayout.Alignment.FILL, true, true);
+        LayoutData layoutDataStore = BorderLayout.Location.LEFT;
+        LayoutData layoutDataChat = BorderLayout.Location.CENTER;
         storePanel = new StorePanel(this);
-        mainPanel.addComponent(storePanel.setLayoutData(layoutData).withBorder(Borders.singleLine("Terminal")));
+        mainPanel.addComponent(storePanel.setLayoutData(layoutDataStore).withBorder(Borders.singleLine("Terminal")));
         chatPanel = new ChatPanel(this);
-        mainPanel.addComponent(chatPanel.setLayoutData(layoutData).withBorder(Borders.singleLine("Chat")));
+        mainPanel.addComponent(chatPanel.setLayoutData(layoutDataChat).withBorder(Borders.singleLine("Chat")));
         header();
         window.setComponent(mainPanel);
         window.setTheme(LanternaThemes.getDefaultTheme());
