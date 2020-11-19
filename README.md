@@ -119,7 +119,7 @@ L'interface client se compose de deux onglets:
 - Le terminal
 - Le chat
 
-Vous pouvez naviguer entre les deux onglets grâce aux flèches directionnelles.
+Vous pouvez naviguer entre les deux onglets grâce aux flèches directionnelles et à la touche Tab.
 Toutes les commandes doivent être rentrées dans la partie *Terminal*. Pour la
 partie *chat*, une fois que vous avez essayé de communiquer avec un pair via
 la commande talk, il est possible de voir la liste des pairs avec la flèche en haut
@@ -229,7 +229,7 @@ grâce à la commande suivante :
   talk [ID ANNONCE]
 ```
 
-### Discuter avec quelqu'un de connecter
+### Discuter avec quelqu'un de connecté
 
 Une fois que l'action `talk` a été faite, vous pouvez utiliser l'onglet de chat pour discuter avec la personne
 que vous voulez contacter. Cependant, si celle-ci se déconnecte, elle ne recevera plus vos messages et ceux-
@@ -364,7 +364,7 @@ Nous sommes donc bien sécurisés.
 ### Protocole Client-Client
 
 Le protocole Pair-à-Pair requiert le passage par un serveur tierce pour faire l'échange des clefs.
-Lorsque l'on demande l'ip, on fait une demande au serveur, qui contacte les deux paires pour leurs
+Lorsque l'on demande l'ip, on fait une demande au serveur, qui contacte les deux paires pour leur
 indiquer les clefs qui vont être utilisées lors de l'échange. Une fois cela fait, les deux pairs
 peuvent chiffrer leurs messages grâce à ces clefs. Cela nous donne la confidentialité et HMAC nous
 donne à nouveau l'intégrité et l'authenticité. Nous sommes donc sécurisés.
@@ -372,12 +372,12 @@ donne à nouveau l'intégrité et l'authenticité. Nous sommes donc sécurisés.
 ## Choix du protocole
 
 Pour le protocole, nous avons choisi d'utiliser TCP pour la partie Client-Server car cela permet d'assurer
-de l'intégrité de l'échange et de l'ordre dans lesquel les paquets arrivent. Même si cela peut ralentir
+l'intégrité de l'échange et de l'ordre dans lesquels les paquets arrivent. Même si cela peut ralentir
 le temps de récéption des informations, cela ne pose pas de soucis car il ne s'agit pas d'informations en
 temps réel.
 
-Pour la partie CLient-Client, nous avons décidé d'utiliser le procotole UDP afin d'alléger le client.
+Pour la partie Client-Client, nous avons décidé d'utiliser le protocole UDP afin d'alléger le client.
 En effet, dans le cas de TCP nous aurions dû utiliser autant de connexions qu'il y a de pairs. En outre,
-UDP nous permet d'être dans un système pair-à-pair. Enfin, la dernière raison qui nous a poussée à écrire
+UDP nous permet d'être dans un système pair-à-pair. Enfin, la dernière raison qui nous a poussées à écrire
 le protocole en UDP est le fait qu'il s'agit d'un cours et non d'un projet professionel. C'était donc l'occasion
 de tester les technologies dans un cadre adapté.
