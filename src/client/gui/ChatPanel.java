@@ -23,6 +23,7 @@ public class ChatPanel extends Panel {
     public ChatPanel(GUI gui) {
         super(new GridLayout(1));
         this.gui = gui;
+        this.setPreferredSize(new TerminalSize(0,0));
         comboBox = new ComboBox<String>();
         Thread thread = new Thread(new LetterBoxThread());
         thread.start();
@@ -82,18 +83,20 @@ public class ChatPanel extends Panel {
 
     private void peerListToComboBox() {
         var peerList = gui.getIpBook().getPeerList();
-        peerList.forEach(s ->
-        {
-            boolean isInComboBox = false;
-            for (int i = 0; i < comboBox.getItemCount(); i++) {
-
-                if (s.equals(comboBox.getItem(i))) {
-                    isInComboBox = true;
-                    break;
-                }
-            }
-            if (!isInComboBox) comboBox.addItem(s);
-        });
+        comboBox.clearItems();
+        peerList.forEach(comboBox::addItem);
+//        peerList.forEach(s ->
+//        {
+//            boolean isInComboBox = false;
+//            for (int i = 0; i < comboBox.getItemCount(); i++) {
+//
+//                if (s.equals(comboBox.getItem(i))) {
+//                    isInComboBox = true;
+//                    break;
+//                }
+//            }
+//            if (!isInComboBox) comboBox.addItem(s);
+//        });
     }
 
     private void textAppend(String s) {
