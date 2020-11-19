@@ -67,6 +67,25 @@ public class PeerService extends Thread {
 		return null;
 	}
 
+	private void sendMessage(Message m) {
+		byte[] buffer = m.toNetFormat().getBytes();
+		if(buffer.length > PACKAGE_LEN) {
+			Logs.warning("Need to truncate message. Wrong format -> truncate");
+			buffer = Arrays.copyOfRange(buffer, 0, PACKAGE_LEN-1);
+		}
+		InetSocketAddress ipPort = m.getAddress();
+		if(ipPort.isUnresolved()) { return; }
+		InetAddress ip = ipPort.getAddress();
+		int port = ipPort.getPort();
+		DatagramPacket outPacket = new DatagramPacket(buffer, buffer.length, ip, port);
+		try {
+			Logs.log("Sending packet: " + outPacket);
+			s.send(outPacket);
+		} catch(IOException e) {
+			Logs.warning("Can't send the message -> next");
+		}
+	}
+
 	private long getTimestamp(String time) {
 		try {
 			return Long.parseLong(time);
@@ -86,16 +105,16 @@ public class PeerService extends Thread {
 	}
 
 	private void handleMsg(Message m, String[] args) {
-		if(index.addOrUpdate(args[0], m.getAddress())) {
-			Logs.log("Someone new is trying to reach you");
-		}
-		box.insertInLetterBox(args[0], m);
 		String[] argsSender = {
 			args[0],
 			args[1]
 		};
-		Message respond = new Message(Message.MessageType.MSG_ACK, argsSender, m.getAddress());
-		box.addToSendingList(respond);
+		Message ack = new Message(Message.MessageType.MSG_ACK, argsSender, m.getAddress());
+		sendMessage(ack);
+		if(index.addOrUpdate(args[0], m.getAddress())) {
+			Logs.log("Someone new is trying to reach you");
+		}
+		box.insertInLetterBox(args[0], m);
 	}
 
 	private void printArgs(Message m) {
@@ -129,24 +148,10 @@ public class PeerService extends Thread {
 		printArgs(m);
 	}
 
+
 	private void sendMessages() {
 		for(Message m : box.getSendingList()) {
-			byte[] buffer = m.toNetFormat().getBytes();
-			if(buffer.length > PACKAGE_LEN) {
-				Logs.warning("Need to truncate message. Wrong format -> truncate");
-				buffer = Arrays.copyOfRange(buffer, 0, PACKAGE_LEN-1);
-			}
-			InetSocketAddress ipPort = m.getAddress();
-			if(ipPort.isUnresolved()) { continue; }
-			InetAddress ip = ipPort.getAddress();
-			int port = ipPort.getPort();
-			DatagramPacket outPacket = new DatagramPacket(buffer, buffer.length, ip, port);
-			try {
-				Logs.log("Sending packet: " + outPacket);
-				s.send(outPacket);
-			} catch(IOException e) {
-				Logs.warning("Can't send the message -> next");
-			}
+			sendMessage(m);
 		}
 	}
 

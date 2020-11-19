@@ -29,7 +29,7 @@ public class Client {
 			}
 
 			client.GDTService GDTService = new GDTService(addr, port);
-			client.PeerService peerService = new PeerService(port_udp, 10000);
+			client.PeerService peerService = new PeerService(port_udp, 5000);
 			new Thread(peerService).start();
 			GDTService.run();
 			DataProvider dataProvider = new DataProvider(GDTService);

@@ -14,12 +14,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class LetterBox {
 	private static LetterBox box                                = null;
 	private ConcurrentHashMap<String, LinkedList<Message>> received       = null;
-	private TreeMap<Long, MessageSender>  sent = null;
+	private ConcurrentHashMap<Long, MessageSender>  sent = null;
 	private final static int MAX_ATTEMPT                        = 3;
 
 	private LetterBox() {
 		this.received = new ConcurrentHashMap<String, LinkedList<Message>>();
-		this.sent = new TreeMap<Long, MessageSender>();
+		this.sent = new ConcurrentHashMap<Long, MessageSender>();
 	}
 	
 	/**
@@ -63,25 +63,21 @@ public class LetterBox {
 	public synchronized LinkedList<Message> getSendingList() {
 		long timestamp = System.currentTimeMillis();
 		LinkedList<Message> toSend = new LinkedList<Message>();
+		LinkedList<Long> toRemove = new LinkedList<Long>();
 		for(long timestampKey : sent.keySet()) {
-					MessageSender message = sent.get(timestampKey);
-					if(message.next < timestamp) {
-						toSend.add(message.message);
-						if(message.message.getType() == Message.MessageType.MSG_ACK) {
-							String[] args = message.message.getArgs();
-							try {
-								sent.remove(Long.parseLong(args[1]));
-							} catch(Exception e) {
-								Logs.warning("Can't parse long for ack " + args[1] + "-> keep it");
-							}
-						}
-					}
-					message.updateAttempt();
-					if(message.attempt >= MAX_ATTEMPT) {
-						sent.remove(timestampKey);
-						continue;
-					}
+			MessageSender message = sent.get(timestampKey);
+			if(message.next < timestamp) {
+				toSend.add(message.message);
 			}
+			message.updateAttempt();
+			if(message.attempt >= MAX_ATTEMPT) {
+				toRemove.add(timestampKey);
+				continue;
+			}
+		}
+		for(long rmTimestamp : toRemove) {
+			sent.remove(rmTimestamp);
+		}
 		return toSend;
 	}
 
