@@ -1,12 +1,10 @@
 package client.gui;
 
-import client.Controller;
 import client.DataProvider;
 import com.googlecode.lanterna.TerminalSize;
-import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.bundle.LanternaThemes;
 import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import common.LetterBox;
@@ -16,23 +14,20 @@ import common.PeerList;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Scanner;
-import java.util.function.Function;
-import java.util.regex.Pattern;
 
-public  class GUI implements Runnable {
+public class GUI implements Runnable {
 
-    private StorePanel storePanel;
-    private InputStream in;
     private final DataProvider dataProvider;
-    private WindowBasedTextGUI gui;
     private final PeerList ipBook;
     private final LetterBox box;
+    private StorePanel storePanel;
+    private final Runnable missingArg = () -> println("Missing arguments");
+    private InputStream in;
+    private WindowBasedTextGUI gui;
     private Panel chatPanel;
     private String username;
 
@@ -75,21 +70,17 @@ public  class GUI implements Runnable {
 
         header();
         window.setComponent(mainPanel);
-        try {
-            screen.refresh();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        window.setTheme(LanternaThemes.getDefaultTheme());
         gui.addWindowAndWait(window);
 
         try {
             if (screen != null) {
                 screen.stopScreen();
-                dataProvider.disconnect();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        dataProvider.disconnect();
     }
 
     public void print(String s) {
@@ -101,7 +92,7 @@ public  class GUI implements Runnable {
     }
 
     public void printf(String format, Object... args) {
-        String s = String.format(format,args);
+        String s = String.format(format, args);
         storePanel.setPanelText(s);
 
     }
@@ -114,8 +105,6 @@ public  class GUI implements Runnable {
         }
         return s.toString();
     }
-
-    private final Runnable missingArg = () -> println("Missing arguments");
 
     private void header() {
         String head = "********************************\n" + "* Good Duck Transport Protocol *\n"
@@ -170,7 +159,7 @@ public  class GUI implements Runnable {
             case "ancs":
                 return () -> dataProvider.getProductByDomain(tokens[1]);
             case "ip":
-                if(tokens.length == 2){
+                if (tokens.length == 2) {
                     return () -> {
                         Message ipMessage = dataProvider.requestIP(tokens[1]);
                         println(ipMessage.toNetFormat());
@@ -179,9 +168,9 @@ public  class GUI implements Runnable {
             case "send_msg_to":
                 return () -> sendMsg(false, tokens);
             case "talk":
-                if (tokens.length <2) return () -> {};
-                var args = new String[]{tokens[0],tokens[1], "Bonjour! Je souhaiterais converser avec vous si vous le voulez bien."};
-                return () -> sendMsg(true,args);
+                if (tokens.length < 2) return missingArg;
+                var args = new String[]{tokens[0], tokens[1], "Bonjour! Je souhaiterais converser avec vous si vous le voulez bien."};
+                return () -> sendMsg(true, args);
             case "":
                 return () -> println("");
             case "help":
@@ -189,11 +178,6 @@ public  class GUI implements Runnable {
             default:
                 return () -> println("Command not found");
         }
-    };
-
-
-    public DataProvider getDataProvider() {
-        return dataProvider;
     }
 
     public PeerList getIpBook() {
@@ -218,9 +202,9 @@ public  class GUI implements Runnable {
         println(st);
     }
 
-    private void createAnnonceGUI(String ancId){
+    private void createAnnonceGUI(String ancId) {
         boolean newEntry = ancId == null;
-        BasicWindow window = new BasicWindow(newEntry?"Create Annonce":"Updating "+ancId);
+        BasicWindow window = new BasicWindow(newEntry ? "Create Annonce" : "Updating " + ancId);
         Panel panel = new Panel();
         panel.setLayoutManager(new GridLayout(2));
 
@@ -243,18 +227,17 @@ public  class GUI implements Runnable {
 
         new Button("Submit", () -> {
             String[] args;
-            if(!newEntry){
+            if (!newEntry) {
                 args = new String[]{"null", "null", "null", "null"};
-                if(!domain.getText().isEmpty()) args[0] = domain.getText();
-                if(!title.getText().isEmpty()) args[1] = title.getText();
-                if(!description.getText().isEmpty()) args[2] = description.getText();
-                if(!price.getText().isEmpty()) args[3] = price.getText();
+                if (!domain.getText().isEmpty()) args[0] = domain.getText();
+                if (!title.getText().isEmpty()) args[1] = title.getText();
+                if (!description.getText().isEmpty()) args[2] = description.getText();
+                if (!price.getText().isEmpty()) args[3] = price.getText();
                 String[] l = new String[5];
                 l[0] = ancId;
                 System.arraycopy(args, 0, l, 1, 4);
                 dataProvider.updateAnc(l);
-            }
-            else {
+            } else {
                 args = new String[4];
                 args[0] = domain.getText();
                 args[1] = title.getText();
@@ -275,19 +258,19 @@ public  class GUI implements Runnable {
         String[] args = new String[msgTable.length + 2];
         args[0] = dest;
         args[1] = Long.valueOf(System.currentTimeMillis()).toString();
-        for(int i = 0 ; i < msgTable.length ; i++) {
-            args[i+2] = msgTable[i];
+        for (int i = 0; i < msgTable.length; i++) {
+            args[i + 2] = msgTable[i];
         }
         return args;
     }
 
     void sendMsg(boolean anc, String[] tokens) {
-        if(username != null && tokens != null && tokens.length == 3) {
+        if (username != null && tokens != null && tokens.length == 3) {
             String dest = null;
             InetSocketAddress addr = null;
-            if(anc) {
+            if (anc) {
                 Message m = dataProvider.requestIP(tokens[1]);
-                if(m != null && m.getArgs() != null && m.getArgs().length == 2) {
+                if (m != null && m.getArgs() != null && m.getArgs().length == 2) {
                     dest = m.getArgs()[1];
                     addr = new InetSocketAddress(m.getArgs()[0], 7201);
                     ipBook.addOrUpdate(dest, addr);
@@ -299,7 +282,7 @@ public  class GUI implements Runnable {
             } else {
                 dest = tokens[1];
                 addr = ipBook.getIp(dest);
-                if(addr == null) {
+                if (addr == null) {
                     Logs.warning("Warning this person can't be found anymore. -> drop");
                     return;
                 }
@@ -307,7 +290,7 @@ public  class GUI implements Runnable {
             String[] args = prepareMsg(username, tokens[2]);
             Message request = new Message(Message.MessageType.MSG, args, addr);
             box.addToSendingList(request);
-            Logs.log("Insert a new message to send" );
+            Logs.log("Insert a new message to send");
         }
     }
 
