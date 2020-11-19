@@ -113,6 +113,18 @@ de son exécution. Il peut être arrêté grâce à un **CTRL+C**.
 
 ### Client
 
+#### Interface
+
+L'interface client se compose de deux onglets:
+- Le terminal
+- Le chat
+
+Vous pouvez naviguer entre les deux onglets grâce aux flèches directionnelles.
+Toutes les commandes doivent être rentrées dans la partie *Terminal*. Pour la
+partie *chat*, une fois que vous avez essayé de communiquer avec un pair via
+la commande talk, il est possible de voir la liste des pairs avec la flèche en haut
+à droite. Le pair indiqué est celui avec qui vous êtes en train de discuter.
+
 #### Aide
 
 Pour afficher l'aide dans l'interpréteur, il faut utiliser la commande suivante :
