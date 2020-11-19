@@ -1,10 +1,12 @@
 package client;
 
+import client.gui.GUI;
 import common.Logs;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.OptionalInt;
+import java.util.function.Supplier;
 
 /**
  * Class to display product well
@@ -12,8 +14,15 @@ import java.util.OptionalInt;
  * @author Marais-Viau
  */
 public class ProductViewer {
+	static GUI gui;
+
+	public static void setGui(GUI gui) {
+		ProductViewer.gui = gui;
+	}
+
 	private ProductViewer() {
 	}
+
 
 	/**
 	 * Display the product list
@@ -22,7 +31,7 @@ public class ProductViewer {
 	 */
 	public static void displayProducts(String[] annonces) {
 		if (annonces == null) {
-			System.out.println("NONE");
+			gui.println("NONE");
 			return;
 		}
 		Logs.log("ENTER DISPLAY annonces size : " + annonces.length);
@@ -53,30 +62,33 @@ public class ProductViewer {
 		int largerDescription = largerOf(descriptions);
 		int largerPrice = largerOf(prices);
 
-		Runnable printGates = () -> {
-			printGate(largerId);
-			printGate(largerDomain);
-			printGate(largerTitle);
-			printGate(largerDescription);
-			printGate(largerPrice);
-			System.out.print("+");
+		Supplier<String> printGates = () -> {
+			String s = "";
+			s += printGate(largerId);
+			s += printGate(largerDomain);
+			s += printGate(largerTitle);
+			s += printGate(largerDescription);
+			s += printGate(largerPrice);
+			return s + "+"  ;
 		};
-		m_annonces.forEach(strings -> {
-			printGates.run();
-			System.out
-					.printf(
+		String finalString = "";
+		for (String[] strings: m_annonces) {
+			finalString += printGates.get();
+			finalString += String.format
+
+					(
 							"\n|%" + -largerId + "s" + "|%" + -largerDomain + "s" + "|%" + -largerTitle + "s" + "|%"
 									+ -largerDescription + "s" + "|%" + -largerPrice + "s|\n",
 							strings[0], strings[1], strings[2], strings[3], strings[4]);
 			if (strings[0].contains("Product")) {
-				printGates.run();
-				System.out.println();
+				finalString += printGates.get();
+				finalString += "\n";
 			}
 			;
-		});
-		printGates.run();
-		System.out.println();
-
+		}
+		finalString += printGates.get();
+		finalString += "\n";
+		gui.println(finalString);
 	}
 
 	/**
@@ -86,24 +98,25 @@ public class ProductViewer {
 	 */
 	public static void printDomains(String[] domains) {
 		String final_s = "";
+		String content_s = "";
 		int gateSize = Arrays.stream(domains).mapToInt(String::length).sum() + domains.length - 1;
-		printGate(gateSize);
-		System.out.print("+");
+		final_s += printGate(gateSize);
+		final_s += "+";
 		for (String s : domains) {
-			final_s += "|" + s;
+			content_s += "|" + s;
 		}
-		System.out.println("\n" + final_s + "|");
-		printGate(gateSize);
-		System.out.println("+");
-
+		final_s += "\n" + content_s + "|";
+		final_s += "\n"+printGate(gateSize);
+		final_s += "+";
+		gui.println(final_s);
 	}
 
-	private static void printGate(int size) {
+	private static String printGate(int size) {
 		String gate = "";
 		for (int i = 0; i < size; i++) {
 			gate += '-';
 		}
-		System.out.print("+" + gate);
+		return ("+" + gate);
 	}
 
 	private static int largerOf(ArrayList<String> args) {

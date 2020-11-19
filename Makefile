@@ -27,7 +27,7 @@ compile_server: compile_common
 
 compile_client: compile_common
 	@printf "Compile the client.\n"
-	javac -cp src src/client/*.java
+	javac -cp src/lanterna-3.0.4.jar:src src/client/*.java
 
 server: compile_server
 	@printf "Run server on port $(SERVER_PORT).\n\n"
@@ -35,7 +35,7 @@ server: compile_server
 
 client: compile_client
 	@printf "Run client.\n"
-	java -cp src client.Client  $(DEBUG) $(GDTP_addr) $(GDTP_port) $(GDTP_udp_port)
+	java -cp src/lanterna-3.0.4.jar:src client.Client  $(DEBUG) $(GDTP_addr) $(GDTP_port) $(GDTP_udp_port)
 
 clean_common:
 	@printf "Clean_common.\n"
@@ -43,7 +43,7 @@ clean_common:
 
 clean_client:
 	@printf "Clean client.\n"
-	rm -rf src/client/*.class
+	rm -rf src/client/{*.class,gui/*.class}
 
 clean_server:
 	@printf "Clean server. \n"
