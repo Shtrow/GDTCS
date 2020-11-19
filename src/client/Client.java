@@ -36,8 +36,6 @@ public class Client {
 			GUI gui = new GUI(dataProvider);
 			DataProvider.setGui(gui);
 			gui.run();
-//			Controller c = new Controller(dataProvider);
-//			c.run();
 			System.out.println("Running client [OK]");
 		} else {
 			System.out.println("Not enough args for client: [debug] [addr] [port]");

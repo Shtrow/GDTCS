@@ -21,6 +21,7 @@ public class ChatPanel extends Panel {
     private ComboBox<String> comboBox;
     private volatile ConcurrentHashMap<String,String> messageHistory = new ConcurrentHashMap<>();
     private Label text = new Label("Welcome to the GDT Chat!");
+    private String panelText = "";
     private GUI gui;
     private Panel chatPanel = new Panel(new BorderLayout());
     private Panel blankPanel = new Panel().addComponent(new EmptySpace(new TerminalSize(0,0)));
@@ -32,6 +33,7 @@ public class ChatPanel extends Panel {
         )));
         this.gui = gui;
         comboBox = new ComboBox<String>();
+        text.withBorder(Borders.singleLineBevel());
 
         Thread thread = new Thread(new LetterBoxThread()); thread.start();
 
@@ -55,6 +57,7 @@ public class ChatPanel extends Panel {
             if (selectedUser == null) {
                 return;
             }
+            setText(messageHistory.getOrDefault(selectedUser,""));
         });
     }
 
@@ -77,6 +80,12 @@ public class ChatPanel extends Panel {
     }
 
     private void setText(String s){
+        this.panelText += s;
+        var textSize = panelText.lines().count();
+        var to_crop = textSize - this.getSize().getRows() +1;
+        to_crop = (to_crop <0) ? 0 : to_crop;
+        String fittedText = this.panelText.replaceFirst("(.*\\n){"+to_crop+"}",
+                "");
         text.setText(s);
     }
 
@@ -114,7 +123,6 @@ public class ChatPanel extends Panel {
                         stringMessage.ifPresent(value -> {
                             var new_text = messageHistory.getOrDefault(s,"")+ "\n"+value;
                             messageHistory.put(s,new_text);
-                            setText(new_text);
                         });
                         updatePeerList();
                     }

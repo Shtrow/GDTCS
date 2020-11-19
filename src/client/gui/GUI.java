@@ -3,7 +3,10 @@ package client.gui;
 import client.Controller;
 import client.DataProvider;
 import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.gui2.dialogs.TextInputDialogBuilder;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import common.LetterBox;
@@ -27,7 +30,6 @@ public  class GUI implements Runnable {
     private StorePanel storePanel;
     private InputStream in;
     private final DataProvider dataProvider;
-    private DefaultTerminalFactory defaultTerminalFactory;
     private WindowBasedTextGUI gui;
     private final PeerList ipBook;
     private final LetterBox box;
@@ -42,16 +44,17 @@ public  class GUI implements Runnable {
 
     @Override
     public void run() {
-        defaultTerminalFactory = new DefaultTerminalFactory();
-        Screen mainPrompt = null;
+        DefaultTerminalFactory defaultTerminalFactory = new DefaultTerminalFactory();
+        Screen screen = null;
         try {
-            mainPrompt = defaultTerminalFactory.createScreen();
-            mainPrompt.startScreen();
+            screen = defaultTerminalFactory.createScreen();
+            screen.startScreen();
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(0);
         }
-        gui = new MultiWindowTextGUI(mainPrompt);
+        gui = new MultiWindowTextGUI(screen);
+        TextGraphics textGraphics = screen.newTextGraphics();
         Window window = new BasicWindow("GDT");
         var hints = new HashSet<Window.Hint>();
         hints.add(Window.Hint.EXPANDED);
@@ -61,18 +64,27 @@ public  class GUI implements Runnable {
 
         LayoutData layoutData = GridLayout.createLayoutData(GridLayout.Alignment.FILL, GridLayout.Alignment.FILL, true, true);
         storePanel = new StorePanel(this);
-        storePanel.setLayoutData(layoutData).withBorder(Borders.doubleLine("Store"));
-        mainPanel.addComponent(storePanel);
+        mainPanel.addComponent(storePanel.setLayoutData(layoutData).withBorder(Borders.singleLine("Terminal")));
         chatPanel = new ChatPanel(this);
-        chatPanel.setLayoutData(layoutData).withBorder(Borders.singleLine("Chat"));
-        mainPanel.addComponent(chatPanel);
+        mainPanel.addComponent(chatPanel.setLayoutData(layoutData).withBorder(Borders.singleLine("Chat")));
+//        String result = new TextInputDialogBuilder()
+//                .setTitle("Multi-line editor")
+//                .setTextBoxSize(new TerminalSize(35, 5))
+//                .build()
+//                .showDialog(gui);
+
         header();
         window.setComponent(mainPanel);
+        try {
+            screen.refresh();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         gui.addWindowAndWait(window);
 
         try {
-            if (mainPrompt != null) {
-                mainPrompt.stopScreen();
+            if (screen != null) {
+                screen.stopScreen();
                 dataProvider.disconnect();
             }
         } catch (IOException e) {
