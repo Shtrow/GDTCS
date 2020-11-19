@@ -116,6 +116,7 @@ de son exécution. Il peut être arrêté grâce à un **CTRL+C**.
 #### Interface
 
 L'interface client se compose de deux onglets:
+
 - Le terminal
 - Le chat
 
@@ -316,11 +317,12 @@ L'implémentation du client s'articule autour de 4 modules.
 
  Cette classe s'occupe également de conserver les identifiants de l'utilisateur sur le disque.
 
- **Controller.java**
+**Client.gui**
 
- Son rôle est de traiter les entrées de l'utilisateur et d'appeller les fonctions nécessaires dans l'objet DataProvider.
+ C'est le package qui s'occupe de toute l'interface utilisateur. On utilise ici la librairie `Lanterna` servant à exploiter d'avantage les possibilités du terminal et permettre notamment de scinder celui-ci en deux. Pour l'affichage des messages du chat, un threads va vérifer l'arrivé de nouveaux messages dans la boite aux lettres, puis va mettre à jour le texte du Panel de droite. Il est possible d'ouvrir plusieurs conversations grâce à une hashmap qui retient l'historique de chaque conversation en fonction du correspondant.
+ Pour ce qui est du Panel de droite (le terminal), le parsing et l'exécution des commandes sont déclenchés à l'aide d'un `Listener` de l'API. Son rôle est de traiter les instructions de l'utilisateur et d'appeller les fonctions nécessaires dans l'objet DataProvider.
 
- **ProductViewer.java**
+**ProductViewer.java**
 
 ProductViewer quant à elle, fournit des fonctions pour afficher de manière élégante les tableaux de produits.
 
