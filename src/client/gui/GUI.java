@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Scanner;
 
@@ -62,12 +63,6 @@ public class GUI implements Runnable {
         mainPanel.addComponent(storePanel.setLayoutData(layoutData).withBorder(Borders.singleLine("Terminal")));
         chatPanel = new ChatPanel(this);
         mainPanel.addComponent(chatPanel.setLayoutData(layoutData).withBorder(Borders.singleLine("Chat")));
-//        String result = new TextInputDialogBuilder()
-//                .setTitle("Multi-line editor")
-//                .setTextBoxSize(new TerminalSize(35, 5))
-//                .build()
-//                .showDialog(gui);
-
         header();
         window.setComponent(mainPanel);
         window.setTheme(LanternaThemes.getDefaultTheme());
@@ -134,7 +129,6 @@ public class GUI implements Runnable {
             case "post":
                 if (tokens.length < 5)
                     return () -> createAnnonceGUI(null);
-//                    return () -> dataProvider.postAnc(createAnnonceHelper(true));
                 else {
                     return (() -> dataProvider.postAnc(Arrays.copyOfRange(tokens, 1, tokens.length)));
                 }
@@ -157,6 +151,7 @@ public class GUI implements Runnable {
             case "domains":
                 return dataProvider::getDomains;
             case "ancs":
+                if(tokens.length <2) return missingArg;
                 return () -> dataProvider.getProductByDomain(tokens[1]);
             case "ip":
                 if (tokens.length == 2) {
@@ -205,6 +200,7 @@ public class GUI implements Runnable {
     private void createAnnonceGUI(String ancId) {
         boolean newEntry = ancId == null;
         BasicWindow window = new BasicWindow(newEntry ? "Create Annonce" : "Updating " + ancId);
+        window.setHints(Collections.singletonList(Window.Hint.CENTERED));
         Panel panel = new Panel();
         panel.setLayoutManager(new GridLayout(2));
 
@@ -249,7 +245,7 @@ public class GUI implements Runnable {
         }).addTo(panel).setLayoutData(GridLayout.createLayoutData(GridLayout.Alignment.BEGINNING, GridLayout.Alignment.BEGINNING));
         new Button("Cancel", window::close).addTo(panel);
         panel.addComponent(lblOutput);
-        window.setComponent(panel);
+        window.setComponent(panel.withBorder(Borders.doubleLine()));
         gui.addWindowAndWait(window);
     }
 

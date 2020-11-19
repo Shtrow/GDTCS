@@ -22,15 +22,11 @@ public class ChatPanel extends Panel {
     private boolean isHidden = true;
     public ChatPanel(GUI gui) {
         super(new GridLayout(1));
-//        this.addComponent(currentPanel.setLayoutData(GridLayout.createLayoutData(
-//                GridLayout.Alignment.FILL, GridLayout.Alignment.FILL,true,true
-//        )));
         this.gui = gui;
         comboBox = new ComboBox<String>();
         Thread thread = new Thread(new LetterBoxThread());
         thread.start();
 
-//        Panel bottomPanel = new Panel(new GridLayout(2));
         PromptBox promptBox = new PromptBox(s -> {
             synchronized (messageHistory) {
                 if (!s.isEmpty()) {
@@ -81,7 +77,6 @@ public class ChatPanel extends Panel {
         peerListToComboBox();
         if (gui.getIpBook().getPeerList().isEmpty()) {
             Logs.log("No contact yet");
-            //Set this panel invisible
         }
     }
 
@@ -135,7 +130,6 @@ public class ChatPanel extends Panel {
         @Override
         public synchronized void run() {
             //TODO Hide chat panel when there is nobody in the contact list
-//            currentPanel = (comboBox.getItemCount() == 0) ? blankPanel : chatPanel;
             var letterBox = ChatPanel.this.gui.getBox();
             Set<String> peerList = gui.getIpBook().getPeerList();
             while (true) {
@@ -144,12 +138,6 @@ public class ChatPanel extends Panel {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-//                var messages =  letterBox.getAllNewMsg();
-//                if(messages !=null){
-//                    messages.forEach(message -> {
-//
-//                    });
-//                }
                 peerList.forEach(s -> {
                     var messages = letterBox.getNewMsgFor(s);
                     if (messages != null) {

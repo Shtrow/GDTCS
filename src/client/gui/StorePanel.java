@@ -14,8 +14,6 @@ public class StorePanel extends Panel {
         super(new BorderLayout());
         this.gui = gui;
         contentLabel = new Label(panelText);
-//        contentLabel.setBackgroundColor(TextColor.ANSI.GREEN);
-//        contentLabel.setPreferredSize(new TerminalSize(3,3));
         TextBox promptBox = new PromptBox(s -> gui.parse(s).run())
                 .setLayoutData(BorderLayout.Location.BOTTOM);
         contentLabel.getSize();
