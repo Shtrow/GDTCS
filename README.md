@@ -280,6 +280,14 @@ Cette classe s'occupe de sauvegarder en mémoire les données des annonces. Les 
 * On ne peut pas insérer une annonce qui existe déjà.
 * Un utilisateur ne peut que modifier ou supprimer une annonce qui lui appartient.
 
+**LetterBox.java**
+
+Il s'agit d'une structure de données qui gère tous nos messages reçus et envoyés. Cette structure est résiliante à la concurrence c'est pourquoi toutes ses méthodes sont *synchronized*. Elle contient une liste des messsages reçus par utilisateur ainsi qu'une liste des messages envoyés, indexés par des timestamps. Lorsque l'on reçoit un message de la part d'un utilisateur si c'est un acquittement, le message associé est retiré de la liste des messages à envoyer. Sinon, on l'ajoute à la liste des messages reçus.
+
+**PeerList.java**
+
+Elle contient les adresses IPs associées aux utilisateurs que l'on a déjà contactés. Comme pour les autres structures, elle possède toutes ses méthodes en *synchronized*. À son initialisation, elle lance un *GarbageCollector* qui supprime les adresses que l'on a pas rencontrées depuis une heure afin d'alléger la mémoire.
+
 ### Client
 
 L'implémentation du client s'articule autour de 4 modules.
@@ -303,6 +311,10 @@ L'implémentation du client s'articule autour de 4 modules.
  **ProductViewer.java**
 
 ProductViewer quant à elle, fournit des fonctions pour afficher de manière élégante les tableaux de produits.
+
+ **PeerService.java**
+
+ Il s'agit du service qui s'occupe de recevoir et d'envoyer les nouveaux messages sur la socket UDP.
 
 ### Serveur
 
