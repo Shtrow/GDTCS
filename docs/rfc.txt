@@ -6,8 +6,8 @@ Network Working Group                                            B. Viau
 Internet-Draft                                                 E. Marais
 Intended status: Experimental                                    C. Yvon
 Expires: 3 April 2021                                         G. Roumage
-Version 6.4                                                  L. Bergerat
-Obsolete: draft-6.3                                             N. Quero
+Version:  7.1                                                L. Bergerat
+Obsolete: draft-7.0.0                                           N. Quero
                                                   N. Gillaizeau-Simonian
                                                               R. Gauchée
                                                                R. Souadi
@@ -15,12 +15,12 @@ Obsolete: draft-6.3                                             N. Quero
 
 
 Viau, et al.              Expires 3 April 2021                  [Page 1]
-
+
 Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
 
                   GDTP - Good Duck Transfert Protocol
-                             draft-gdtp-00
+                             draft-gdtp-07
 
 Table des matières
 
@@ -71,7 +71,7 @@ Table des matières
 
 
 Viau, et al.              Expires 3 April 2021                  [Page 2]
-
+
 Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
 
@@ -103,14 +103,14 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
          DELETE_ANC_OK
          DELETE_ANC_KO
          REQUEST_DOMAIN
-         SEND_DOMAIN_OK
+         SEND_DOMAINE_OK
          SEND_DOMAIN_KO
          REQUEST_ANC
 
 
 
 Viau, et al.              Expires 3 April 2021                  [Page 3]
-
+
 Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
 
@@ -123,15 +123,8 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
          REQUEST_IP_OK
          REQUEST_IP_KO
          UNKNOWN_REQUEST
-         CONNECT_PAIR
-         CONNECT_PAIR_OK
-         CONNECT_PAIR_REJECTED
-         CONNECT_PAIR_OK
-         CONNECT_PAIR_KO
-         DISCONNECT_PAIR
-         SEND_MSG
-         SEND_MSG_OK
-         SEND_MSG_KO
+         MSG
+         MSG_ACK
 
    *  Chaque requête termine par une ligne avec ".\n".
    *  Il est possible d'ajouter des arguments à chaque message.  Les
@@ -155,7 +148,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
 
 Viau, et al.              Expires 3 April 2021                  [Page 4]
-
+
 Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
 
@@ -185,10 +178,12 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
    *  En cas de réussite
 
-      +-------------+
-      |CONNECT_OK   |
-      |.            |
-      +-------------+
+      +---------------+
+      |CONNECT_OK     |
+      |<token>        |
+      |<utilisateur>  |
+      |.              |
+      +---------------+
 
    *  En cas réussite avec création de token
 
@@ -214,7 +209,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
       +-------------+
 
    * Dans le cas des futurs échanges avec le serveur, si 
-   l'utilisat⋅eur⋅rice n'est pas connecté, le serveur envoie :
+     l'utilisat⋅eur⋅rice n'est pas connecté, le serveur envoie :
 
       +--------------+
       |NOT_CONNECTED |
@@ -223,7 +218,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
 
 Viau, et al.              Expires 3 April 2021                  [Page 5]
-
+
 Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
 
@@ -279,7 +274,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
 
 Viau, et al.              Expires 3 April 2021                  [Page 6]
-
+
 Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
 
@@ -344,7 +339,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
 
 Viau, et al.              Expires 3 April 2021                  [Page 7]
-
+
 Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
 
@@ -362,7 +357,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
    *  En cas de succès, le serveur renvoie
 
       +----------------+
-      |SEND_DOMAIN_OK  |
+      |SEND_DOMAINE_OK |
       |<domaine 1>     |
       |<domaine 2>     |
       |[...]           |
@@ -411,7 +406,7 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
 
 Viau, et al.              Expires 3 April 2021                  [Page 8]
-
+
 Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
 
@@ -485,12 +480,12 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
       +--------------------+
 
 Viau, et al.              Expires 3 April 2021                  [Page 9]
-
+
 Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
 2.3.10. Message inconnu
 
-   * Si le serveur ne connait pas le message, il peut envoyé 
+   * Si le serveur ne connait pas le message, il peut envoyer
      le message suivant :
 
       +--------------------+
@@ -502,109 +497,40 @@ Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
 
 3.1.  Fonctionnement
 
-   Pour la connexion entre les pairs, les clients en mode serveur
-   écoutent sur le port 7201.
+   Pour la connexion entre les pairs, les clients utilisent le protocole UDP
+   et écoutent sur le port 7201. Tous les datagrammes auront une taille
+   maximale de 1024 octets. Le '.' à la fin sera utilisé pour séparer le
+   contenu de la partie qui assure l'authenticité grâce à HMAC.
+   Le message est renvoyé N fois tant qu'aucun n'acquittement n'a été reçu
+   où le nombre N est laissé au choix de l'implémentation.
 
-3.2.  Connexion
+3.2.  Message
 
 3.2.1.  Format
 
    +--------------------------+
-   |CONNECT_PAIR              |
-   |<utilisateur à contacter> |
-   |.                         |
+   | MSG                      |
+   | <émetteur>               |
+   | <timestamp>              |
+   | <msg>                    |
+   | .                        |
    +--------------------------+
+
+   Timestamp représente le temps UNIX en millisecondes.
 
 3.2.2.  Action
 
-   *  En cas de succès, le serveur renvoie
+   Pour confirmer la réception du message, l'autre pair renvoie l'acquittement
+   suivant. Le timestamp étant unique car en millisecondes, on s'assure que
+   cela acquitte un unique messsage.
 
-      +----------------------+
-      |CONNECT_PAIR_OK       |
-      |.                     |
-      +----------------------+
-
-   *  En cas d'échec, si le client refuse la connexion, il renvoie
-
-      +----------------------------+
-      |CONNECT_PAIR_REJECTED       |
-      |.                           |
-      +----------------------------+
-
-   *  En cas d'échec, il retourne
-      |SEND_MSG_KO       |
-
-      +----------------------+
-      |CONNECT_PAIR_KO       |
-      |.                     |
-      +----------------------+
-
-3.3.  Déconnexion
-
-3.3.1.  Format
-
-
-
-
+   +-----------------------------+
+   | MSG_ACK                     |
+   | <émetteur du message reçu>  |
+   | <timestamp du message reçu> |
+   | .                           |
+   +-----------------------------+
 
 Viau, et al.              Expires 3 April 2021                 [Page 10]
-
+
 Internet-Draft     GDTP - Good Duck Transfert Protocol    September 2020
-
-
-   +------------------+
-   |DISCONNECT_PAIR   |
-   |.                 |
-   +------------------+
-
-3.3.2.  Action
-
-   Quand le serveur reçoit la demande de déconnexion, il ferme la
-   connexion.
-
-3.4.  Envoyer un message
-
-3.4.1.  Format
-
-   +-------------+
-   |SEND_MSG     |
-   |<message>    |
-   |.            |
-   +-------------+
-
-3.4.2.  Action
-
-   *  En cas de succès, le serveur renvoie
-
-      +------------------+
-      |SEND_MSG_OK       |
-      |.                 |
-      +------------------+
-
-   *  En cas d'échec, il retourne
-
-      +------------------+
-      |SEND_MSG_KO       |
-      |.                 |
-      +------------------+
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Viau, et al.              Expires 3 April 2021                 [Page 11]
