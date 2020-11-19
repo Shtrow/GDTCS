@@ -1,6 +1,8 @@
 package common;
 
 import java.util.Arrays;
+import java.net.InetSocketAddress;
+import java.net.InetAddress;
 
 /**
  * Class to manage Message sent
@@ -10,16 +12,29 @@ import java.util.Arrays;
 public class Message {
   private MessageType type;
   private String[] args;
+	private InetSocketAddress addr;
 
   /**
 	 * Constructor
 	 *
 	 * @param type the type of the message
 	 * @param args arguments of the message
+	 * @param addr the address where the message must be sent
 	 */
-  public Message(MessageType type, String[] args) {
+  public Message(MessageType type, String[] args, InetSocketAddress addr) {
     this.type = type;
     this.args = args;
+		this.addr = addr;
+  }
+
+	/**
+	 * Constructor
+	 *
+	 * @param type the type of the message
+	 * @param args arguments of the message
+	 */
+  public Message(MessageType type, String[] args) {
+		this(type, args, null);
   }
 
 	/**
@@ -28,8 +43,7 @@ public class Message {
 	 * @param type the type of the message
 	 */
   public Message(MessageType type) {
-    this.type = type;
-    this.args = null;
+		this(type, null, null);
   }
 
 	/**
@@ -51,6 +65,15 @@ public class Message {
   }
 
 	/**
+	 * Address getter
+	 *
+	 * @return the address of the message
+	 */
+  public InetSocketAddress getAddress() {
+    return addr;
+  }
+
+	/**
 	 * Argument setter
 	 *
 	 * @param args the arguments
@@ -66,6 +89,25 @@ public class Message {
 	 */
   public void setType(MessageType type) {
     this.type = type;
+  }
+
+	/**
+	 * Inet setter
+	 *
+	 * @param addr the address of the message
+	 */
+  public void setAddress(InetSocketAddress addr) {
+    this.addr = addr;
+  }
+
+	/**
+	 * Inet setter
+	 *
+	 * @param addr the address of the message
+	 * @param port the port of the address
+	 */
+  public void setAddress(InetAddress addr, int port) {
+    this.addr = new InetSocketAddress(addr, port);
   }
 
 	/**
@@ -188,29 +230,11 @@ public class Message {
       case "UNKNOWN_REQUEST":
         res = MessageType.UNKNOWN_REQUEST;
         break;
-      case "CONNECT_PAIR":
-        res = MessageType.CONNECT_PAIR;
+      case "MSG":
+        res = MessageType.MSG;
         break;
-      case "CONNECT_PAIR_REJECTED":
-        res = MessageType.CONNECT_PAIR_REJECTED;
-        break;
-      case "CONNECT_PAIR_OK":
-        res = MessageType.CONNECT_PAIR_OK;
-        break;
-      case "CONNECT_PAIR_KO":
-        res = MessageType.CONNECT_PAIR_KO;
-        break;
-      case "DISCONNECT_PAIR":
-        res = MessageType.DISCONNECT_PAIR;
-        break;
-      case "SEND_MSG":
-        res = MessageType.SEND_MSG;
-        break;
-      case "SEND_MSG_OK":
-        res = MessageType.SEND_MSG_OK;
-        break;
-      case "SEND_MSG_KO":
-        res = MessageType.SEND_MSG_KO;
+      case "MSG_ACK":
+        res = MessageType.MSG_ACK;
         break;
       default:
         throw new IllegalArgumentException("Message not supported");
@@ -281,21 +305,10 @@ public class Message {
 
     UNKNOWN_REQUEST("UNKNOWN_REQUEST"),
 
-    CONNECT_PAIR("CONNECT_PAIR"),
+    MSG("MSG"),
 
-    CONNECT_PAIR_REJECTED("CONNECT_PAIR_REJECTED"),
+    MSG_ACK("MSG_ACK");
 
-    CONNECT_PAIR_OK("CONNECT_PAIR_OK"),
-
-    CONNECT_PAIR_KO("CONNECT_PAIR_KO"),
-
-    DISCONNECT_PAIR("DISCONNECT_PAIR"),
-
-    SEND_MSG("SEND_MSG"),
-
-    SEND_MSG_OK("SEND_MSG_OK"),
-
-    SEND_MSG_KO("SEND_MSG_KO");
 
     private String name;
 

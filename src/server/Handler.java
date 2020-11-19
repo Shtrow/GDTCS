@@ -152,10 +152,12 @@ public class Handler extends Thread {
 		} else {
 			String [] argSend = { "" };
 			if (args[0].charAt(0) == '#') { // ------------ Token
+				argSend = new String[2];
 				argSend[0] = args[0].substring(1);
 				if(index.isValidToken(argSend[0])) {
 					name = index.getUserFromToken(argSend[0]);
 					if (name == null) { send = false; }
+					argSend[1] = name;
 					index.updateIp(name, addr);
 				} else { send = false; }
 			} else { // ------------------------------------ User

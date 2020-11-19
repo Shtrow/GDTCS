@@ -35,7 +35,7 @@ public class DataProvider {
 	 * @param success  the action in case of success
 	 * @param failure  the action in case of failure
 	 */
-	private static boolean basicRequest(Message message, Message.MessageType expected, Message.MessageType error,
+	private static Message basicRequest(Message message, Message.MessageType expected, Message.MessageType error,
 			Consumer<Message> success, Consumer<Message> failure) {
 		if (message == null) {
 			Logs.log("TIMEOUT : Server does not respond \n Disconnection...");
@@ -45,19 +45,19 @@ public class DataProvider {
 			success.accept(message);
 		} else if (message.getType() == error) {
 			failure.accept(message);
-			return false;
+			return null;
 		} else if (message.getType() == Message.MessageType.NOT_CONNECTED) {
 			Logs.warning("Communication error \nServer response :" + message.toNetFormat());
 			System.out.println("You need to be connected first\n");
-			return false;
+			return null;
 		} else if (message.getType() == Message.MessageType.UNKNOWN_REQUEST) {
 			Logs.error("Unknown Request");
 			System.out.println("The send message is not compatible with the server");
 		} else {
 			Logs.error("Communication error \nServer response :" + message.toNetFormat());
-			return false;
+			return null;
 		}
-		return true;
+		return message;
 	}
 
 	/**
@@ -108,10 +108,23 @@ public class DataProvider {
 		}
 	}
 
-	/**
-	 * Handle the connection when you have already been connect
+
+	 /**
+	 * Handle the connection with a username and without
+	 *
+	 * @param userName the username of the user
+	 * @return the userName;
 	 */
-	public void connect() {
+	public String genericConnect(String [] tokens) {
+		if (tokens.length < 2) {
+			connect();
+		} else {
+			connect(tokens[1]);
+		}
+		return this.userName;
+	}
+
+	private void connect() {
 		if (token == null) {
 			System.out.println("The first time you connect, you have to choose a user name. \n connect [user name]");
 			return;
@@ -124,22 +137,17 @@ public class DataProvider {
 		}).join();
 	}
 
-	/**
-	 * Handle the connection with a username
-	 *
-	 * @param userName the username of the user
-	 */
-	public void connect(String userName) {
+	private void connect(String userName) {
 		this.userName = userName;
 		Message message = new Message(Message.MessageType.CONNECT, new String[] { userName });
 		service.askFor(message).thenAccept(m -> {
-			boolean check = basicRequest(m, Message.MessageType.CONNECT_NEW_USER_OK, Message.MessageType.CONNECT_NEW_USER_KO,
+			Message check = basicRequest(m, Message.MessageType.CONNECT_NEW_USER_OK, Message.MessageType.CONNECT_NEW_USER_KO,
 					v -> {
 						this.token = "#" + m.getArgs()[0];
 						writeTokenInDisk(this.userName,this.token);
 						System.out.println("Connected! Welcome " + userName + "\nYour token is : " + token);
 					}, v -> System.out.println("Connection refused by the server"));
-			if (!check) {
+			if (check == null) {
 				basicRequest(m, Message.MessageType.CONNECT_OK, Message.MessageType.CONNECT_KO, v -> {
 					this.token = "#" + m.getArgs()[0];
                     writeTokenInDisk(this.userName,this.token);
@@ -254,14 +262,17 @@ public class DataProvider {
 	 *
 	 * @param postID the id of the announce
 	 */
-	public void requestIP(String postID) {
+	public Message requestIP(String postID) {
 		Message message = new Message(Message.MessageType.REQUEST_IP, new String[] { postID });
 		var answer = service.askFor(message);
-		Consumer<Message> successBehavior = m -> System.out.println("IP for announce " + postID + " is " + m.getArgs()[0]);
-		Consumer<Message> failBehavior = m -> System.out
-				.println("The server refused your request and can't retrieve the announce or an IP");
-		answer.thenAcceptAsync(m -> basicRequest(m, Message.MessageType.REQUEST_IP_OK, Message.MessageType.REQUEST_IP_KO,
-				successBehavior, failBehavior)).join();
+		Consumer<Message> successBehavior = m -> Logs.log("IP for announce " + postID + " is " + m.getArgs()[0]);
+		Consumer<Message> failBehavior = m -> Logs.warning("The server refused your request and can't retrieve the announce or an IP");
+		try {
+		 return answer.thenApply(m -> basicRequest(m, Message.MessageType.REQUEST_IP_OK, Message.MessageType.REQUEST_IP_KO,
+				successBehavior, failBehavior)).get();
+		} catch(Exception e) {
+			return null;
+		}
 	}
 }
 
