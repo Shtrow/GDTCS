@@ -113,6 +113,19 @@ de son exécution. Il peut être arrêté grâce à un **CTRL+C**.
 
 ### Client
 
+#### Interface
+
+L'interface client se compose de deux onglets:
+
+- Le terminal
+- Le chat
+
+Vous pouvez naviguer entre les deux onglets grâce aux flèches directionnelles et à la touche Tab.
+Toutes les commandes doivent être rentrées dans la partie *Terminal*. Pour la
+partie *chat*, une fois que vous avez essayé de communiquer avec un pair via
+la commande talk, il est possible de voir la liste des pairs avec la flèche en haut
+à droite. Le pair indiqué est celui avec qui vous êtes en train de discuter.
+
 #### Aide
 
 Pour afficher l'aide dans l'interpréteur, il faut utiliser la commande suivante :
@@ -208,6 +221,22 @@ La commande à utiliser est la suivante :
 >> ip [ID ANNONCE]
 ```
 
+### Ouvrir le chat
+
+Il est possible d'ouvrir une discussion avec quelqu'un qui est connecté sur le serveur de discussion
+grâce à la commande suivante :
+
+```
+  talk [ID ANNONCE]
+```
+
+### Discuter avec quelqu'un de connecté
+
+Une fois que l'action `talk` a été faite, vous pouvez utiliser l'onglet de chat pour discuter avec la personne
+que vous voulez contacter. Cependant, si celle-ci se déconnecte, elle ne recevera plus vos messages et ceux-
+ci seront perdus.
+
+
 ## Détail de l'implémentation
 
 
@@ -264,6 +293,14 @@ Cette classe s'occupe de sauvegarder en mémoire les données des annonces. Les 
 * On ne peut pas insérer une annonce qui existe déjà.
 * Un utilisateur ne peut que modifier ou supprimer une annonce qui lui appartient.
 
+**LetterBox.java**
+
+Il s'agit d'une structure de données qui gère tous nos messages reçus et envoyés. Cette structure est résiliante à la concurrence c'est pourquoi toutes ses méthodes sont *synchronized*. Elle contient une liste des messsages reçus par utilisateur ainsi qu'une liste des messages envoyés, indexés par des timestamps. Lorsque l'on reçoit un message de la part d'un utilisateur si c'est un acquittement, le message associé est retiré de la liste des messages à envoyer. Sinon, on l'ajoute à la liste des messages reçus.
+
+**PeerList.java**
+
+Elle contient les adresses IPs associées aux utilisateurs que l'on a déjà contactés. Comme pour les autres structures, elle possède toutes ses méthodes en *synchronized*. À son initialisation, elle lance un *GarbageCollector* qui supprime les adresses que l'on a pas rencontrées depuis une heure afin d'alléger la mémoire.
+
 ### Client
 
 L'implémentation du client s'articule autour de 4 modules.
@@ -280,13 +317,18 @@ L'implémentation du client s'articule autour de 4 modules.
 
  Cette classe s'occupe également de conserver les identifiants de l'utilisateur sur le disque.
 
- **Controller.java**
+**Client.gui**
 
- Son rôle est de traiter les entrées de l'utilisateur et d'appeller les fonctions nécessaires dans l'objet DataProvider.
+ C'est le package qui s'occupe de toute l'interface utilisateur. On utilise ici la librairie `Lanterna` servant à exploiter d'avantage les possibilités du terminal et permettre notamment de scinder celui-ci en deux. Pour l'affichage des messages du chat, un threads va vérifer l'arrivé de nouveaux messages dans la boite aux lettres, puis va mettre à jour le texte du Panel de droite. Il est possible d'ouvrir plusieurs conversations grâce à une hashmap qui retient l'historique de chaque conversation en fonction du correspondant.
+ Pour ce qui est du Panel de droite (le terminal), le parsing et l'exécution des commandes sont déclenchés à l'aide d'un `Listener` de l'API. Son rôle est de traiter les instructions de l'utilisateur et d'appeller les fonctions nécessaires dans l'objet DataProvider.
 
- **ProductViewer.java**
+**ProductViewer.java**
 
 ProductViewer quant à elle, fournit des fonctions pour afficher de manière élégante les tableaux de produits.
+
+ **PeerService.java**
+
+ Il s'agit du service qui s'occupe de recevoir et d'envoyer les nouveaux messages sur la socket UDP.
 
 ### Serveur
 
@@ -303,3 +345,41 @@ Il s'agit de la classe qui écoute les requêtes entrante. À chaque nouvelle co
 Cette classe s'occupe de gérer les échanges entre le serveur et le client une fois la connexion établie. Elle lit les requêtes ligne par ligne jusqu'à voir un point. Quand elle voit celui-ci, elle transforme la requête en message et la traite via un switch pour déterminer l'action à executér. Toutes les actions néccessitent d'abord de se connecter en suivant le protocole. Sinon, le message NOT_CONNECTED est envoyé. Aussi, le protocole a été écrit de telle façon que, si la requête est inconnue, nous pouvons le spécifier au client avec lequel nous sommes connectés. Il est donc très facile d'étendre le protocole avec de nouvels en-têtes: il suffit d'écrire une nouvelle méthode est de l'ajouter au switch.
 
 Chaque "handler" possède un timeout de 12H pour couper la connexion en cas d'absence de message pendant cette durée. Dans le cas où le client se déconnecte, le serveur ferme automatiquement la connexion et retire l'utilisateur de  la liste des IP en cours de connexion.
+
+## Sécurité
+
+### Intégrité
+
+Pour s'assurer de l'identité de l'émetteur et du récepteur nous pouvons utiliser le système de HMAC.
+Cela consiste à prendre une empreinte du message que l'on va envoyer avec un token qui nous identifie.
+Le token est présent de chacun des côtés de la connexion et permet de signer les messages.
+Lorsque l'on reçoit le message, il suffit de calculer l'empreinte à nouveau et de s'assurer que c'est la même.
+Ainsi, si elle diffère, nous savons que soit le message a été modifié, soit l'utilisateur n'est pas le bon.
+Le "." dans le protocole permet de faire la distinction entre la partie HMAC et le reste.
+
+### Protocole Client-Serveur
+
+Pour sécuriser le protocole Client-Serveur et assurer la confidentialité, nous pouvons utiliser les sockets sécurisées
+fournies par TCP à travers le protocole cela nous assure la confidentialité, et HMAC l'intégrité et l'authenticité.
+Nous sommes donc bien sécurisés.
+
+### Protocole Client-Client
+
+Le protocole Pair-à-Pair requiert le passage par un serveur tierce pour faire l'échange des clefs.
+Lorsque l'on demande l'ip, on fait une demande au serveur, qui contacte les deux paires pour leur
+indiquer les clefs qui vont être utilisées lors de l'échange. Une fois cela fait, les deux pairs
+peuvent chiffrer leurs messages grâce à ces clefs. Cela nous donne la confidentialité et HMAC nous
+donne à nouveau l'intégrité et l'authenticité. Nous sommes donc sécurisés.
+
+## Choix du protocole
+
+Pour le protocole, nous avons choisi d'utiliser TCP pour la partie Client-Server car cela permet d'assurer
+l'intégrité de l'échange et de l'ordre dans lesquels les paquets arrivent. Même si cela peut ralentir
+le temps de récéption des informations, cela ne pose pas de soucis car il ne s'agit pas d'informations en
+temps réel.
+
+Pour la partie Client-Client, nous avons décidé d'utiliser le protocole UDP afin d'alléger le client.
+En effet, dans le cas de TCP nous aurions dû utiliser autant de connexions qu'il y a de pairs. En outre,
+UDP nous permet d'être dans un système pair-à-pair. Enfin, la dernière raison qui nous a poussées à écrire
+le protocole en UDP est le fait qu'il s'agit d'un cours et non d'un projet professionel. C'était donc l'occasion
+de tester les technologies dans un cadre adapté.
