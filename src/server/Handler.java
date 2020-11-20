@@ -103,7 +103,8 @@ public class Handler extends Thread {
 			wantAnExit = true;
 			return null;
 		} catch (IOException e) {
-			Logs.warning("IOException for " + addr + " -> skipping");
+			Logs.warning("IOException for " + addr + " -> closing connection");
+			wantAnExit = true;
 			return null;
 		}
 	}
